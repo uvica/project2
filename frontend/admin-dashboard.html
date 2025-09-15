@@ -761,7 +761,7 @@ async function loadStories() {
         return;
     }
     
-    // REMOVE THE .slice(0, 8) - Show ALL courses
+   
     courses.forEach(c => {  // ← Changed from courses.slice(0, 8).forEach(c => {
         const row = document.createElement('tr');
         row.innerHTML = `
