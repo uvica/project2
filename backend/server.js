@@ -24,18 +24,18 @@ app.use(express.json()); // For JSON requests
 app.use(express.urlencoded({ extended: true })); // For form data parsing
 app.use(cors({
     origin: [
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-        'http://127.0.0.1:5500',
-        'http://localhost:5500',
-        'http://localhost:8000'
+        'http://localhost:3000',          // local frontend
+        'https://project2-ten-sand.vercel.app',  // Vercel frontend
+        'https://project2-air7.onrender.com'     // backend frontend if served from same Render
     ],
     credentials: true
 }));
+
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Serve frontend static files
-app.use(express.static(path.join(__dirname, '../frontend')));
+// app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Mount routers
 app.use('/api/courses', require('./routes/courses'));
