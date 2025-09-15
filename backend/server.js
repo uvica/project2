@@ -1,37 +1,47 @@
 const express = require('express');
+const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 const db = require('./db');
+const partnersRouter = require('./routes/partners'); // Adjust path as needed
 
 const app = express();
 
-// Serve frontend static files
-app.use(express.static(path.join(__dirname, '../frontend')));
+// Configure multer storage (optional, can be moved to partners.js if needed)
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, 'uploads/partners'));
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname); // Unique filename
+    }
+});
+const upload = multer({ storage });
 
-// CORS configuration
+// Middleware
+app.use(express.json()); // For JSON requests
+app.use(express.urlencoded({ extended: true })); // For form data parsing
 app.use(cors({
     origin: [
         'http://localhost:3000',
         'http://127.0.0.1:3000',
         'http://127.0.0.1:5500',
         'http://localhost:5500',
-        'http://localhost:8000' // Add your frontend port
+        'http://localhost:8000'
     ],
     credentials: true
 }));
-
-// JSON parsing
-app.use(express.json());
-
-// Serve uploaded CVs
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, '../frontend')));
 
 // Mount routers
 app.use('/api/courses', require('./routes/courses'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/faqs', require('./routes/faqs'));
-app.use('/api/partners', require('./routes/partners'));
+app.use('/api/partners', partnersRouter); // Mount partners router
 app.use('/api/stories', require('./routes/success_stories'));
 app.use('/api/site_stats', require('./routes/siteStats'));
 app.use('/api/admins', require('./routes/admins'));

@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentConnect CareerCraft - Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gray: {
+                            900: '#111827',
+                            800: '#1f2937',
+                            700: '#374151',
+                            600: '#4b5563',
+                            500: '#6b7280',
+                            400: '#9ca3af'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Admin Dashboard Styles */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .sidebar-item { 
+            padding: 0.75rem 1rem; 
+            cursor: pointer; 
+            transition: all 0.2s;
+            border-radius: 0.375rem;
+            margin: 0.25rem 0;
+        }
+        .sidebar-item.active { background-color: #3b82f6; color: white; }
+        .sidebar-item:hover { background-color: #374151; }
+        .form-input, .form-textarea { 
+            background-color: #374151; 
+            border: 1px solid #4b5563; 
+            color: white; 
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            width: 100%;
+        }
+        .form-textarea { min-height: 100px; resize: vertical; }
+        .form-input:focus, .form-textarea:focus { border-color: #3b82f6; outline: none; }
+        .btn-primary { 
+            background-color: #3b82f6; 
+            color: white; 
+            padding: 0.5rem 1rem; 
+            border-radius: 0.375rem; 
+            border: none; 
+            cursor: pointer; 
+            transition: 0.2s; 
+        }
+        .btn-primary:hover { background-color: #2563eb; }
+        .btn-secondary { 
+            background-color: #6b7280; 
+            color: white; 
+            padding: 0.5rem 1rem; 
+            border-radius: 0.375rem; 
+            border: none; 
+            cursor: pointer; 
+            transition: 0.2s; 
+        }
+        .btn-secondary:hover { background-color: #4b5563; }
+        .btn-danger { 
+            background-color: #ef4444; 
+            color: white; 
+            padding: 0.5rem 1rem; 
+            border-radius: 0.375rem; 
+            border: none; 
+            cursor: pointer; 
+            transition: 0.2s; 
+        }
+        .btn-danger:hover { background-color: #dc2626; }
+        .card { 
+            background-color: #1f2937; 
+            border-radius: 0.5rem; 
+            padding: 1.5rem; 
+            margin-bottom: 1rem; 
+            border: 1px solid #374151; 
+        }
+        .modal { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(0,0,0,0.5); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 1000; 
+        }
+        .modal-content { 
+            background: #1f2937; 
+            padding: 2rem; 
+            border-radius: 0.5rem; 
+            max-width: 90vw; 
+            max-height: 90vh; 
+            overflow-y: auto; 
+            width: 100%; 
+            max-width: 600px; 
+        }
+        .admin-hidden { display: none !important; }
+        .item-row { 
+            background-color: #374151; 
+            padding: 1rem; 
+            border-radius: 0.375rem; 
+            margin-bottom: 0.5rem; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+        .stat-card {
+            background-color: #1f2937;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid #374151;
+        }
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+        }
+        .login-form {
+            background: #1f2937;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #1f2937;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+        .user-table th, .user-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        .user-table th {
+            background-color: #374151;
+            font-weight: bold;
+        }
+        .user-table tr:hover {
+            background-color: #2d3748;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-900 text-white">
+    <!-- Admin Login Screen -->
+    <div id="adminLoginScreen" class="login-container">
+        <div class="login-form">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-500 rounded-full mb-4">
+                    <i class="fas fa-lock text-white text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold">Admin Login</h2>
+                <p class="text-gray-400 mt-2">Enter your credentials to access the dashboard</p>
+            </div>
+            <form id="adminLoginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Admin Email</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i class="fas fa-envelope text-gray-400"></i>
+                        </div>
+                        <input type="email" id="adminEmail" required class="w-full pl-10 p-3 bg-gray-700 border border-gray-600 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="Enter admin email" />
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Password</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i class="fas fa-key text-gray-400"></i>
+                        </div>
+                        <input type="password" id="adminPassword" required class="w-full pl-10 p-3 bg-gray-700 border border-gray-600 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="Enter password" />
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input type="checkbox" class="rounded bg-gray-700 border-gray-600 text-blue-500 focus:ring-blue-500" />
+                        <span class="ml-2 text-sm">Remember me</span>
+                    </label>
+                    <a href="#" class="text-sm text-blue-400 hover:underline">Forgot password?</a>
+                </div>
+                <div class="flex space-x-4">
+                    <button type="submit" class="flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Login to Dashboard
+                    </button>
+                    <a href="index.html" class="flex-1 bg-gray-700 hover:bg-gray-600 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center text-center">
+                        <i class="fas fa-arrow-left mr-2"></i> Back
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="admin-hidden min-h-screen flex">
+        <!-- Sidebar -->
+        <div class="sidebar w-64 min-h-screen bg-gray-800 p-4">
+            <div class="mb-6">
+                <h2 class="text-xl font-bold text-blue-400">Admin Dashboard</h2>
+                <p class="text-sm text-gray-400">TalentConnect CareerCraft</p>
+            </div>
+            <nav class="space-y-1">
+                <a href="index.html" class="sidebar-item"><i class="fas fa-home mr-2"></i> Home</a>
+                <div class="sidebar-item active" onclick="showTab('overview', event)">📊 Overview</div>
+                <div class="sidebar-item" onclick="showTab('siteStats', event)">⚙️ Site Stats</div>
+                <div class="sidebar-item" onclick="showTab('courses', event)">📚 Courses</div>
+                <div class="sidebar-item" onclick="showTab('partners', event)">🤝 Hiring Partners</div>
+                <div class="sidebar-item" onclick="showTab('stories', event)">⭐ Success Stories</div>
+                <div class="sidebar-item" onclick="showTab('users', event)">👤 Registered Users</div>
+                <div class="sidebar-item" onclick="logout()"><i class="fas fa-sign-out-alt mr-2"></i> Logout</div>
+            </nav>
+        </div>
+
+        <!-- Main -->
+        <div class="flex-1 p-6 overflow-y-auto bg-gray-900">
+            <div class="mb-6">
+                <h1 class="text-3xl font-bold mb-2">Welcome, Admin</h1>
+                <p class="text-gray-400">Manage website content</p>
+            </div>
+
+            <!-- Overview -->
+            <div id="overview" class="tab-content active">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="stat-card"><h3 class="font-semibold text-blue-400">Total Courses</h3><p class="text-3xl font-bold" id="totalCourses">0</p></div>
+                    <div class="stat-card"><h3 class="font-semibold text-yellow-400">Partners</h3><p class="text-3xl font-bold" id="totalPartners">0</p></div>
+                    <div class="stat-card"><h3 class="font-semibold text-purple-400">Success Stories</h3><p class="text-3xl font-bold" id="totalStories">0</p></div>
+                    <div class="stat-card"><h3 class="font-semibold text-green-400">Registered Users</h3><p class="text-3xl font-bold" id="totalUsers">0</p></div>
+                </div>
+            </div>
+
+            <!-- Site Stats Tab -->
+            <div id="siteStats" class="tab-content">
+                <h2 class="text-xl font-bold mb-4">Edit Site Stats</h2>
+                <form id="siteStatsForm" class="space-y-4">
+                    <div>
+                        <label for="program_duration" class="block text-sm font-medium">Program Duration</label>
+                        <input type="text" id="program_duration" name="program_duration" class="form-input" placeholder="e.g., 3 Months">
+                    </div>
+                    <div>
+                        <label for="course_tracks" class="block text-sm font-medium">Course Tracks</label>
+                        <input type="text" id="course_tracks" name="course_tracks" class="form-input" placeholder="e.g., 8+">
+                    </div>
+                    <div>
+                        <label for="placement_rate" class="block text-sm font-medium">Placement Rate</label>
+                        <input type="text" id="placement_rate" name="placement_rate" class="form-input" placeholder="e.g., 100%">
+                    </div>
+                    <div>
+                        <label for="industry_mentors" class="block text-sm font-medium">Industry Mentors</label>
+                        <input type="text" id="industry_mentors" name="industry_mentors" class="form-input" placeholder="e.g., 50+">
+                    </div>
+                    <div>
+                        <label for="min_stipend" class="block text-sm font-medium">Minimum Stipend</label>
+                        <input type="text" id="min_stipend" name="min_stipend" class="form-input" placeholder="e.g., ₹15K">
+                    </div>
+                    <div>
+                        <label for="max_stipend" class="block text-sm font-medium">Maximum Stipend</label>
+                        <input type="text" id="max_stipend" name="max_stipend" class="form-input" placeholder="e.g., ₹35K">
+                    </div>
+                    <div>
+                        <label for="alumni_network" class="block text-sm font-medium">Alumni Network</label>
+                        <input type="text" id="alumni_network" name="alumni_network" class="form-input" placeholder="e.g., 500+">
+                    </div>
+                    <div>
+                        <label for="partner_companies" class="block text-sm font-medium">Partner Companies</label>
+                        <input type="text" id="partner_companies" name="partner_companies" class="form-input" placeholder="e.g., 200+">
+                    </div>
+                    <div>
+                        <label for="average_rating" class="block text-sm font-medium">Average Rating</label>
+                        <input type="text" id="average_rating" name="average_rating" class="form-input" placeholder="e.g., 4.9/5">
+                    </div>
+                    <div>
+                        <label for="avg_package" class="block text-sm font-medium">Average Package</label>
+                        <input type="text" id="avg_package" name="avg_package" class="form-input" placeholder="e.g., ₹12.5L">
+                    </div>
+                    <div>
+                        <label for="highest_package" class="block text-sm font-medium">Highest Package</label>
+                        <input type="text" id="highest_package" name="highest_package" class="form-input" placeholder="e.g., ₹45L">
+                    </div>
+                    <div>
+                        <label for="success_rate" class="block text-sm font-medium">Success Rate</label>
+                        <input type="text" id="success_rate" name="success_rate" class="form-input" placeholder="e.g., 95%">
+                    </div>
+                    <div>
+                        <label for="hands_on_projects" class="block text-sm font-medium">Hands-on Projects</label>
+                        <input type="text" id="hands_on_projects" name="hands_on_projects" class="form-input" placeholder="e.g., 25+">
+                    </div>
+                    <div>
+                        <label for="job_placement_guarantee" class="block text-sm font-medium">Job Placement Guarantee</label>
+                        <input type="text" id="job_placement_guarantee" name="job_placement_guarantee" class="form-input" placeholder="e.g., 100%">
+                    </div>
+                    <div>
+                        <label for="active_alumni_network" class="block text-sm font-medium">Active Alumni Network</label>
+                        <input type="text" id="active_alumni_network" name="active_alumni_network" class="form-input" placeholder="e.g., 500+">
+                    </div>
+                    <div>
+                        <label for="internship_placement" class="block text-sm font-medium">Internship Placement</label>
+                        <input type="text" id="internship_placement" name="internship_placement" class="form-input" placeholder="e.g., 100%">
+                    </div>
+                    <div>
+                        <label for="convert_to_full_time" class="block text-sm font-medium">Convert to Full-time</label>
+                        <input type="text" id="convert_to_full_time" name="convert_to_full_time" class="form-input" placeholder="e.g., 85%">
+                    </div>
+                    <div>
+                        <label for="avg_job_placement_time" class="block text-sm font-medium">Avg. Job Placement Time</label>
+                        <input type="text" id="avg_job_placement_time" name="avg_job_placement_time" class="form-input" placeholder="e.g., 2 Weeks">
+                    </div>
+                    <div>
+                        <label for="average_starting_salary" class="block text-sm font-medium">Average Starting Salary</label>
+                        <input type="text" id="average_starting_salary" name="average_starting_salary" class="form-input" placeholder="e.g., ₹8.5L">
+                    </div>
+                    <div>
+                        <label for="internship_stipend" class="block text-sm font-medium">Internship Stipend</label>
+                        <input type="text" id="internship_stipend" name="internship_stipend" class="form-input" placeholder="e.g., ₹15K-₹35K">
+                    </div>
+                    <button type="submit" class="btn-primary w-full">Save Site Stats</button>
+                </form>
+            </div>
+
+            <!-- Courses Tab -->
+            <div id="courses" class="tab-content">
+                <div class="mb-4 flex justify-between items-center">
+                    <h2 class="text-xl font-bold">Courses</h2>
+                    <button class="btn-primary" onclick="openCourseModal()">➕ Add Course</button>
+                </div>
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Icon</th>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Duration</th>
+                            <th>Level</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="courseList"></tbody>
+                </table>
+            </div>
+
+            <!-- Partners Tab -->
+            <div id="partners" class="tab-content">
+                <div class="mb-4 flex justify-between items-center">
+                    <h2 class="text-xl font-bold">Hiring Partners</h2>
+                    <button class="btn-primary" onclick="openPartnerModal()">➕ Add Partner</button>
+                </div>
+                <div id="partnerList"></div>
+            </div>
+
+            <!-- Success Stories Tab -->
+            <div id="stories" class="tab-content">
+                <div class="mb-4 flex justify-between items-center">
+                    <h2 class="text-xl font-bold">Success Stories</h2>
+                    <button class="btn-primary" onclick="openStoryModal()">➕ Add Story</button>
+                </div>
+                <div id="storyList"></div>
+            </div>
+
+            <!-- Registered Users Tab -->
+            <div id="users" class="tab-content">
+                <div class="mb-4 flex justify-between items-center">
+                    <h2 class="text-xl font-bold">Registered Users</h2>
+                </div>
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Phone</th>
+                            <th>CV</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Modal -->
+    <div id="courseModal" class="modal admin-hidden">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4">Add/Edit Course</h2>
+            <form id="courseForm" class="space-y-4">
+                <input type="hidden" id="courseId">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Icon (Emoji)</label>
+                    <input type="text" id="courseIcon" class="form-input" placeholder="e.g., ⚛️" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Title</label>
+                    <input type="text" id="courseTitle" required class="form-input" placeholder="Course Title" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Description</label>
+                    <textarea id="courseDescription" class="form-textarea" placeholder="Short description"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Duration</label>
+                    <input type="text" id="courseDuration" class="form-input" placeholder="e.g., 3 months" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Level</label>
+                    <input type="text" id="courseLevel" class="form-input" placeholder="e.g., Intermediate" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Full Description</label>
+                    <textarea id="courseFullDescription" class="form-textarea" placeholder="Detailed description"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Features (one per line)</label>
+                    <textarea id="courseFeatures" class="form-textarea" placeholder="Feature 1\nFeature 2\nFeature 3"></textarea>
+                </div>
+                <button type="submit" class="btn-primary w-full">Save Course</button>
+                <button type="button" class="btn-secondary w-full mt-2" onclick="closeCourseModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Partner Modal -->
+    <div id="partnerModal" class="modal admin-hidden">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4">Add/Edit Partner</h2>
+            <form id="partnerForm" enctype="multipart/form-data" class="space-y-4">
+                <input type="hidden" id="partnerIndex">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Name (Alt Text)</label>
+                    <input type="text" id="partnerAlt" name="name" required class="form-input" placeholder="Enter partner name" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Logo Image</label>
+                    <input type="file" id="partnerSrc" name="logo" accept="image/*" required class="form-input" />
+                </div>
+                <button type="submit" class="btn-primary w-full">Save Partner</button>
+                <button type="button" class="btn-secondary w-full mt-2" onclick="closePartnerModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Story Modal -->
+    <div id="storyModal" class="modal admin-hidden">
+        <div class="modal-content">
+            <h2 class="text-xl font-bold mb-4">Add/Edit Success Story</h2>
+            <form id="storyForm" class="space-y-4">
+                <input type="hidden" id="storyIndex">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Quote</label>
+                    <textarea id="storyQuote" required class="form-textarea" placeholder="Success quote"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Name</label>
+                    <input type="text" id="storyName" required class="form-input" placeholder="Alumni Name" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Role</label>
+                    <input type="text" id="storyRole" required class="form-input" placeholder="Job Role" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Company</label>
+                    <input type="text" id="storyCompany" required class="form-input" placeholder="Company Name" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Upload Image</label>
+                    <input type="file" id="storyImageFile" class="form-input" accept="image/*" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2">Rating (1-5)</label>
+                    <input type="number" id="storyRating" required min="1" max="5" class="form-input" />
+                </div>
+                <button type="submit" class="btn-primary w-full">Save Story</button>
+                <button type="button" class="btn-secondary w-full mt-2" onclick="closeStoryModal()">Cancel</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:5000/api";
+        const UPLOADS_BASE = "http://localhost:5000/uploads";
+
+        // --- ADMIN LOGIN ---
+        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('adminEmail').value;
+            const password = document.getElementById('adminPassword').value;
+            if (email === 'admin@talentconnect.com' && password === 'admin123') {
+                showAdminPanel();
+            } else {
+                const form = document.getElementById('adminLoginForm');
+                form.classList.add('shake');
+                setTimeout(() => form.classList.remove('shake'), 500);
+                alert('Invalid credentials. Please try again.');
+            }
+        });
+
+        function showAdminPanel() {
+            document.getElementById('adminLoginScreen').classList.add('admin-hidden');
+            document.getElementById('adminDashboard').classList.remove('admin-hidden');
+            loadAllData();
+        }
+
+        // --- LOGOUT ---
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                document.getElementById('adminDashboard').classList.add('admin-hidden');
+                document.getElementById('adminLoginScreen').classList.remove('admin-hidden');
+                document.getElementById('adminLoginForm').reset();
+            }
+        }
+
+        // --- TABS ---
+        function showTab(tab, event) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(tab).classList.add('active');
+            if (event) event.currentTarget.classList.add('active');
+            if (tab === 'users') fetchUsers();
+            if (tab === 'courses') loadCourses();
+            if (tab === 'partners') loadPartners();
+            if (tab === 'stories') loadStories();
+            if (tab === 'siteStats') loadSiteStats();
+        }
+
+        // --- LOAD DATA ---
+        async function loadAllData() {
+            await fetchUsers();
+            await loadCourses();
+            await loadPartners();
+            await loadStories();
+            await loadSiteStats();
+        }
+
+
+        // --- SITE STATS ---
+async function loadSiteStats() {
+    try {
+        const res = await fetch(`${API_BASE}/site_stats`, { cache: 'no-cache' });
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        console.log('Site stats received:', data);
+        
+        // Update ALL form fields including the ones you added
+        const fieldMappings = {
+            'program_duration': data.program_duration || '3 Months',
+            'course_tracks': data.course_tracks || '8+',
+            'placement_rate': data.placement_rate || '100%',
+            'industry_mentors': data.industry_mentors || '50+',
+            'min_stipend': data.min_stipend || '₹15K',
+            'max_stipend': data.max_stipend || '₹35K',
+            'alumni_network': data.alumni_network || '500+',
+            'partner_companies': data.partner_companies || '200+',
+            'average_rating': data.average_rating || '4.9/5',
+            'avg_package': data.avg_package || '₹12.5L',
+            'highest_package': data.highest_package || '₹45L',
+            'success_rate': data.success_rate || '95%',
+            'hands_on_projects': data.hands_on_projects || '25+',
+            'job_placement_guarantee': data.job_placement_guarantee || '100%',
+            'active_alumni_network': data.active_alumni_network || '500+',
+            'internship_placement': data.internship_placement || '100%',
+            'convert_to_full_time': data.convert_to_full_time || '85%',
+            'avg_job_placement_time': data.avg_job_placement_time || '2 Weeks',
+            'average_starting_salary': data.average_starting_salary || '₹8.5L',
+            'internship_stipend': data.internship_stipend || '₹15K-₹35K'
+        };
+
+        // Update all form fields
+        for (const [fieldId, value] of Object.entries(fieldMappings)) {
+            const element = document.getElementById(fieldId);
+            if (element) {
+                element.value = value;
+            } else {
+                console.warn(`Element with ID ${fieldId} not found`);
+            }
+        }
+    } catch (err) {
+        console.error('Error loading site stats:', err);
+        alert(`Failed to load site stats: ${err.message}. Check console for details.`);
+    }
+}
+
+// FIXED FORM SUBMISSION HANDLER
+document.getElementById('siteStatsForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Collect all form data properly
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+    
+    console.log('Submitting data:', data); // Debug log
+
+    try {
+        const res = await fetch(`${API_BASE}/site_stats`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const responseData = await res.json();
+        
+        if (!res.ok) {
+            throw new Error(responseData.error || `Server returned ${res.status}`);
+        }
+        
+        alert(responseData.message || 'Site stats updated successfully!');
+        loadSiteStats(); // Reload to reflect changes
+    } catch (err) {
+        console.error('Error updating site stats:', err);
+        alert(`Failed to update site stats: ${err.message}`);
+    }
+});
+
+        // --- COURSES ---
+       
+    // --- COURSES ---
+async function loadCourses() {
+    try {
+        console.log('Loading courses...');
+        const res = await fetch(`${API_BASE}/courses`);
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        
+        const courses = await res.json();
+        console.log('Courses loaded:', courses.length);
+        
+        renderCourses(courses);
+        document.getElementById('totalCourses').innerText = courses.length;
+    } catch(err) {
+        console.error('Error loading courses:', err);
+        const container = document.getElementById('courseList');
+        if (container) {
+            container.innerHTML = '<tr><td colspan="6" class="text-red-400">Error loading courses</td></tr>';
+        }
+    }
+}
+
+// --- PARTNERS ---
+async function loadPartners() {
+    try {
+        console.log('Loading partners...');
+        const res = await fetch(`${API_BASE}/partners`);
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        
+        const partners = await res.json();
+        console.log('Partners loaded:', partners.length);
+        
+        renderPartners(partners);
+        document.getElementById('totalPartners').innerText = partners.length;
+    } catch(err) { 
+        console.error('Error loading partners:', err);
+        const container = document.getElementById('partnerList');
+        if (container) {
+            container.innerHTML = '<p class="text-red-400 p-4">Error loading partners. Check console for details.</p>';
+        }
+    }
+}
+// --- SUCCESS STORIES ---  
+async function loadStories() {
+    try {
+        console.log('Loading stories...');
+        const res = await fetch(`${API_BASE}/stories`);
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        
+        const stories = await res.json();
+        console.log('Stories loaded:', stories.length);
+        
+        renderStories(stories);
+        document.getElementById('totalStories').innerText = stories.length;
+    } catch(err) { 
+        console.error('Error loading stories:', err);
+        const container = document.getElementById('storyList');
+        if (container) {
+            container.innerHTML = '<p class="text-red-400">Error loading stories</p>';
+        }
+    }
+}
+
+        function openCourseModal(course = null) {
+            const modal = document.getElementById('courseModal');
+            modal.classList.remove('admin-hidden');
+            if (course) {
+                document.getElementById('courseId').value = course.id;
+                document.getElementById('courseIcon').value = course.icon || '';
+                document.getElementById('courseTitle').value = course.title || '';
+                document.getElementById('courseDescription').value = course.description || '';
+                document.getElementById('courseDuration').value = course.duration || '';
+                document.getElementById('courseLevel').value = course.level || '';
+                document.getElementById('courseFullDescription').value = course.full_description || '';
+                document.getElementById('courseFeatures').value = course.features || '';
+            } else {
+                document.getElementById('courseForm').reset();
+                document.getElementById('courseId').value = '';
+            }
+        }
+
+        function closeCourseModal() { 
+            document.getElementById('courseModal').classList.add('admin-hidden'); 
+        }
+
+        document.getElementById('courseForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('courseId').value;
+            const courseData = {
+                icon: document.getElementById('courseIcon').value || null,
+                title: document.getElementById('courseTitle').value,
+                description: document.getElementById('courseDescription').value || null,
+                duration: document.getElementById('courseDuration').value || null,
+                level: document.getElementById('courseLevel').value || null,
+                full_description: document.getElementById('courseFullDescription').value || null,
+                features: document.getElementById('courseFeatures').value || null
+            };
+            try {
+                const response = await fetch(id ? `${API_BASE}/courses/${id}` : `${API_BASE}/courses`, {
+                    method: id ? 'PUT' : 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(courseData)
+                });
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                closeCourseModal();
+                loadCourses();
+            } catch(err) { 
+                console.error('Error saving course:', err);
+                alert(`Failed to save course: ${err.message}`);
+            }
+        });
+
+       function renderCourses(courses) {
+    const container = document.getElementById('courseList');
+    if (!container) return;
+    
+    // Clear previous content
+    container.innerHTML = '';
+    
+    if (courses.length === 0) {
+        container.innerHTML = '<tr><td colspan="6" class="text-gray-400 text-center py-4">No courses found.</td></tr>';
+        return;
+    }
+    
+    // REMOVE THE .slice(0, 8) - Show ALL courses
+    courses.forEach(c => {  // ← Changed from courses.slice(0, 8).forEach(c => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${c.icon || 'N/A'}</td>
+            <td class="max-w-xs truncate">${c.title || 'N/A'}</td>
+            <td class="max-w-xs truncate">${c.description || 'N/A'}</td>
+            <td>${c.duration || 'N/A'}</td>
+            <td>${c.level || 'N/A'}</td>
+            <td class="flex space-x-2">
+                <button class="btn-secondary text-xs" onclick='openCourseModal(${JSON.stringify(c).replace(/'/g, "\\'")})'>Edit</button>
+                <button class="btn-danger text-xs" onclick="deleteCourse(${c.id})">Delete</button>
+            </td>
+        `;
+        container.appendChild(row);
+    });
+}
+        async function deleteCourse(id) {
+            if (confirm('Delete this course?')) {
+                try {
+                    const response = await fetch(`${API_BASE}/courses/${id}`, { method: 'DELETE' });
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    loadCourses();
+                } catch(err) { 
+                    console.error('Error deleting course:', err);
+                    alert(`Failed to delete course: ${err.message}`);
+                }
+            }
+        }
+
+        // --- PARTNERS ---
+        async function loadPartners() {
+            try {
+                const res = await fetch(`${API_BASE}/partners`);
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                const partners = await res.json();
+                renderPartners(partners);
+                document.getElementById('totalPartners').innerText = partners.length;
+            } catch(err) { 
+                console.error('Error loading partners:', err);
+                document.getElementById('partnerList').innerHTML = `<p class="text-red-400">Error loading partners: ${err.message}</p>`;
+            }
+        }
+
+        function openPartnerModal(partner = null) {
+            const modal = document.getElementById('partnerModal');
+            modal.classList.remove('admin-hidden');
+            const form = document.getElementById('partnerForm');
+            if (partner) {
+                document.getElementById('partnerIndex').value = partner.id;
+                document.getElementById('partnerAlt').value = partner.name || '';
+                // No need to set file input value; it’s read-only until a new file is selected
+            } else {
+                form.reset();
+                document.getElementById('partnerIndex').value = '';
+            }
+        }
+
+        function closePartnerModal() {
+            document.getElementById('partnerModal').classList.add('admin-hidden');
+        }
+
+        document.getElementById('partnerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('partnerIndex').value;
+            const formData = new FormData(this);
+            try {
+                const response = await fetch(id ? `${API_BASE}/partners/${id}` : `${API_BASE}/partners`, {
+                    method: id ? 'PUT' : 'POST',
+                    body: formData
+                });
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                closePartnerModal();
+                loadPartners();
+            } catch (err) {
+                console.error('Error saving partner:', err);
+                alert(`Failed to save partner: ${err.message}`);
+            }
+        });
+
+        function renderPartners(partners) {
+    const container = document.getElementById('partnerList');
+    container.innerHTML = '';
+    if (partners.length === 0) {
+        container.innerHTML = '<p class="text-gray-400">No partners found.</p>';
+        return;
+    }
+    partners.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'item-row';
+        div.innerHTML = `
+            <span>
+                <strong>${p.name}</strong> - 
+                <img src="${API_BASE}/uploads/partners/${p.logo_path}" alt="${p.name}" 
+                     style="height: 50px; border-radius: 5px; margin-top: 5px;"
+                     onerror="this.src='https://via.placeholder.com/150x80?text=Image+Not+Found'">
+            </span>
+            <span>
+                <button class="btn-secondary mr-2" onclick='openPartnerModal(${JSON.stringify(p)})'>Edit</button>
+                <button class="btn-danger" onclick="deletePartner(${p.id})">Delete</button>
+            </span>
+        `;
+        container.appendChild(div);
+    });
+}
+        async function deletePartner(id) {
+            if (confirm('Delete this partner?')) {
+                try {
+                    const response = await fetch(`${API_BASE}/partners/${id}`, { method: 'DELETE' });
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    loadPartners();
+                } catch(err) { 
+                    console.error('Error deleting partner:', err);
+                    alert(`Failed to delete partner: ${err.message}`);
+                }
+            }
+        }
+
+        // --- SUCCESS STORIES ---
+        async function loadStories() {
+            try {
+                const res = await fetch(`${API_BASE}/stories`);
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                const stories = await res.json();
+                renderStories(stories);
+                document.getElementById('totalStories').innerText = stories.length;
+            } catch(err) { 
+                console.error('Error loading stories:', err);
+                document.getElementById('storyList').innerHTML = `<p class="text-red-400">Error loading stories: ${err.message}</p>`;
+            }
+        }
+
+        function openStoryModal(story = null) {
+            const modal = document.getElementById('storyModal');
+            modal.classList.remove('admin-hidden');
+            if (story) {
+                document.getElementById('storyIndex').value = story.id;
+                document.getElementById('storyQuote').value = story.quote;
+                document.getElementById('storyName').value = story.name;
+                document.getElementById('storyRole').value = story.role;
+                document.getElementById('storyCompany').value = story.company;
+                document.getElementById('storyRating').value = story.rating;
+            } else { 
+                document.getElementById('storyForm').reset(); 
+                document.getElementById('storyIndex').value = ''; 
+            }
+        }
+
+        function closeStoryModal() { 
+            document.getElementById('storyModal').classList.add('admin-hidden'); 
+        }
+
+        document.getElementById('storyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('storyIndex').value;
+            const formData = new FormData();
+            formData.append('quote', document.getElementById('storyQuote').value);
+            formData.append('name', document.getElementById('storyName').value);
+            formData.append('role', document.getElementById('storyRole').value);
+            formData.append('company', document.getElementById('storyCompany').value);
+            formData.append('rating', document.getElementById('storyRating').value);
+            const imageFile = document.getElementById('storyImageFile').files[0];
+            if (imageFile) formData.append('image', imageFile);
+            try {
+                const response = await fetch(id ? `${API_BASE}/stories/${id}` : `${API_BASE}/stories`, {
+                    method: id ? 'PUT' : 'POST',
+                    body: formData
+                });
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                closeStoryModal();
+                loadStories();
+            } catch (err) {
+                console.error('Error saving story:', err);
+                alert(`Failed to save story: ${err.message}`);
+            }
+        });
+
+       function renderStories(stories) {
+    const container = document.getElementById('storyList');
+    if (!container) return;
+    
+    // Clear previous content
+    container.innerHTML = '';
+    
+    if (stories.length === 0) {
+        container.innerHTML = '<p class="text-gray-400 text-center py-4">No success stories found.</p>';
+        return;
+    }
+    
+    stories.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'item-row';
+        div.innerHTML = `
+            <span class="flex-1">
+                <strong>${s.name || 'Unknown'}</strong> - ${s.role || 'N/A'} at ${s.company || 'N/A'} 
+                (Rating: ${s.rating || 'N/A'})<br>
+                ${s.image ? `<img src="${UPLOADS_BASE}/${s.image}" alt="${s.name}" 
+                     class="h-12 rounded mt-2" onerror="this.style.display='none'">` : ''}
+            </span>
+            <span class="flex space-x-2">
+                <button class="btn-secondary text-xs" onclick='openStoryModal(${JSON.stringify(s).replace(/'/g, "\\'")})'>Edit</button>
+                <button class="btn-danger text-xs" onclick="deleteStory(${s.id})">Delete</button>
+            </span>
+        `;
+        container.appendChild(div);
+    });
+}
+
+        async function deleteStory(id) {
+            if (confirm('Delete this story?')) {
+                try {
+                    const response = await fetch(`${API_BASE}/stories/${id}`, { method: 'DELETE' });
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                    loadStories();
+                } catch(err) { 
+                    console.error('Error deleting story:', err);
+                    alert(`Failed to delete story: ${err.message}`);
+                }
+            }
+        }
+
+        // --- USERS ---
+        async function fetchUsers() {
+            try {
+                const res = await fetch(`${API_BASE}/users`);
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                const users = await res.json();
+                renderUsers(users);
+                document.getElementById('totalUsers').innerText = users.length;
+            } catch(err) {
+                console.error('Error fetching users:', err);
+                document.getElementById('userList').innerHTML = `<tr><td colspan="5" class="text-red-400">Error loading users: ${err.message}. Check backend connection.</td></tr>`;
+            }
+        }
+
+        function renderUsers(users) {
+            const container = document.getElementById('userList');
+            container.innerHTML = '';
+            if (users.length === 0) { 
+                container.innerHTML = '<tr><td colspan="5" class="text-gray-400">No registered users found.</td></tr>'; 
+                return; 
+            }
+            users.forEach(u => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${u.full_name}</td>
+                    <td>${u.email}</td>
+                    <td>${u.role || 'N/A'}</td>
+                    <td>${u.phone || 'N/A'}</td>
+                    <td>${u.cv_path ? `<a href="${UPLOADS_BASE}/${u.cv_path}" target="_blank" class="text-blue-400 hover:underline">Download CV</a>` : 'N/A'}</td>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // --- INITIALIZE ---
+        document.addEventListener('DOMContentLoaded', loadAllData);
+    </script>
+</body>
+</html>
