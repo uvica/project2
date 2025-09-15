@@ -51,6 +51,45 @@ app.use('/api/registrations', require('./routes/registrations'));
 app.use((req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });
+// Add to server.js for debugging
+app.get('/api/debug', async (req, res) => {
+    try {
+        const [rows] = await db.execute('SELECT 1 as test');
+        res.json({ 
+            status: 'OK', 
+            database: 'Connected',
+            timestamp: new Date().toISOString()
+        });
+    } catch (err) {
+        res.status(500).json({ 
+            status: 'Error', 
+            database: 'Connection failed',
+            error: err.message 
+        });
+    }
+});
+
+app.get('/api/debug/uploads', (req, res) => {
+    const fs = require('fs');
+    const uploadsPath = path.join(__dirname, 'uploads');
+    
+    try {
+        const partners = fs.readdirSync(path.join(uploadsPath, 'partners'));
+        const stories = fs.readdirSync(path.join(uploadsPath, 'stories'));
+        
+        res.json({
+            uploadsDir: uploadsPath,
+            partners: partners,
+            stories: stories
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+});
 
 // Start server
 const PORT = process.env.PORT || 5000;
