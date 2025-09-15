@@ -21,11 +21,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-    origin: [
-        'http://localhost:3000',
-        'https://project2-ten-sand.vercel.app',
-        'https://project2-air7.onrender.com'
-    ],
+    origin: true, // Allow all origins
     credentials: true
 }));
 

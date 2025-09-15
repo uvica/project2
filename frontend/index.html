@@ -1489,5 +1489,18 @@
   window.goToStory = goToStory;
   window.showCourseModal = showCourseModal;
   window.hideCourseModal = hideCourseModal;
+// Add this at the beginning of your initializePage() function
+console.log('Testing API connection to:', API_BASE);
+
+// Test the connection
+fetch(`${API_BASE}/health`)
+  .then(response => {
+    console.log('API health check status:', response.status);
+    return response.json();
+  })
+  .then(data => console.log('API health response:', data))
+  .catch(error => console.error('API health check failed:', error));
 
 </script>
+</body>
+</html>
