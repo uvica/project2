@@ -55,5 +55,17 @@ router.post('/', upload.single('cv'), async (req, res) => {
         res.status(500).json({ error: 'Failed to register user: ' + err.message });
     }
 });
+// Get all registrations
+router.get('/', async (req, res) => {
+  try {
+    const [registrations] = await db.query(
+      'SELECT id, full_name, email, phone, role, cv_path, created_at FROM registrations ORDER BY id DESC'
+    );
+    res.json(registrations);
+  } catch (err) {
+    console.error('Error fetching registrations:', err);
+    res.status(500).json({ error: 'Failed to fetch registrations: ' + err.message });
+  }
+});
 
 module.exports = router;

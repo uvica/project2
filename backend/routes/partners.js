@@ -59,5 +59,16 @@ router.post('/', upload.single('logo'), async (req, res) => {
     res.status(500).json({ error: 'Failed to add partner: ' + err.message });
   }
 });
+// Get all partners
+router.get('/', async (req, res) => {
+  try {
+    const [partners] = await db.query('SELECT * FROM partners ORDER BY id DESC');
+    res.json(partners);
+  } catch (err) {
+    console.error('Error fetching partners:', err);
+    res.status(500).json({ error: 'Failed to fetch partners: ' + err.message });
+  }
+});
+
 
 module.exports = router;

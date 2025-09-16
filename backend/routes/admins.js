@@ -1,5 +1,4 @@
 console.log('✅ Admins router loaded');
-
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
@@ -28,6 +27,7 @@ router.post('/', async (req, res) => {
     }
 });
 
+
 // Login admin
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
@@ -51,4 +51,13 @@ router.post('/login', async (req, res) => {
     }
 });
 
+router.get('/', async (req, res) => {
+    try {
+        const [admins] = await db.query('SELECT id, email FROM admins');
+        res.json(admins);
+    } catch (err) {
+        console.error('Error fetching admins:', err);
+        res.status(500).json({ error: 'Failed to fetch admins: ' + err.message });
+    }
+});
 module.exports = router;

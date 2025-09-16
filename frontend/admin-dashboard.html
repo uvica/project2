@@ -498,7 +498,29 @@
     </div>
 
     <script>
-        const API_BASE = "https://project3-cm23.onrender.com/";
+        const API_BASE =  "https://project3-cm23.onrender.com";
+
+async function debugCourses() {
+  try {
+    const res = await fetch(`${API_BASE}/courses`, { cache: "no-cache" });
+    console.log("Fetch response object:", res);
+
+    if (!res.ok) {
+      console.error("HTTP error! Status:", res.status);
+      const text = await res.text();
+      console.error("Response text:", text);
+      return;
+    }
+
+    const data = await res.json();
+    console.log("Courses data from backend:", data);
+  } catch (err) {
+    console.error("Fetch failed:", err);
+  }
+}
+
+debugCourses();
+
 
 
 
@@ -747,6 +769,10 @@ async function loadStories() {
                 alert(`Failed to save course: ${err.message}`);
             }
         });
+
+
+
+
 
        function renderCourses(courses) {
     const container = document.getElementById('courseList');
