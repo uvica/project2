@@ -498,7 +498,7 @@
     </div>
 
     <script>
-        const API_BASE =  "https://project2-3-3jc8.onrender.com";
+const API_BASE = "https://project2-air7.onrender.com/api";
 
 async function debugCourses() {
   try {
@@ -574,13 +574,11 @@ async function debugCourses() {
 
         // --- SITE STATS ---
 async function loadSiteStats() {
-    try {
-        const res = await fetch(`${API_BASE}/site_stats`, { cache: 'no-cache' });
-        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-        const data = await res.json();
-        if (data.error) throw new Error(data.error);
-        console.log('Site stats received:', data);
-        
+  try {
+    const res = await fetch(`${API_BASE}/site_stats`); // match your backend route
+    if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+    const data = await res.json();
+    console.log(data);
         // Update ALL form fields including the ones you added
         const fieldMappings = {
             'program_duration': data.program_duration || '3 Months',
@@ -874,10 +872,10 @@ async function loadStories() {
         div.innerHTML = `
             <span>
                 <strong>${p.name}</strong> - 
-                <img src="${p.logo_path}" alt="${p.name}">
+                <img src="${p.logo_path}" alt="${p.name}" 
+     style="height:50px; border-radius:5px; margin-top:5px;" 
+     onerror="this.src='https://via.placeholder.com/150x80?text=Image+Not+Found'">
 
-                     style="height: 50px; border-radius: 5px; margin-top: 5px;"
-                     onerror="this.src='https://via.placeholder.com/150x80?text=Image+Not+Found'">
             </span>
             <span>
                 <button class="btn-secondary mr-2" onclick='openPartnerModal(${JSON.stringify(p)})'>Edit</button>
