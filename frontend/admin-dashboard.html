@@ -498,9 +498,8 @@
     </div>
 
     <script>
-        const API_BASE = "https://project2-air7.onrender.com/api";
+        const API_BASE = "https://project2-2-wiep.onrender.com/api";
 
-        const UPLOADS_BASE =  "https://project2-air7.onrender.com/uploads";
 
 
         // --- ADMIN LOGIN ---
@@ -854,7 +853,8 @@ async function loadStories() {
         div.innerHTML = `
             <span>
                 <strong>${p.name}</strong> - 
-                <img src="${UPLOADS_BASE}/partners/${p.logo_path}" alt="${p.name}" 
+                <img src="${p.logo_path}" alt="${p.name}">
+
                      style="height: 50px; border-radius: 5px; margin-top: 5px;"
                      onerror="this.src='https://via.placeholder.com/150x80?text=Image+Not+Found'">
             </span>
@@ -957,7 +957,7 @@ async function loadStories() {
             <span class="flex-1">
                 <strong>${s.name || 'Unknown'}</strong> - ${s.role || 'N/A'} at ${s.company || 'N/A'} 
                 (Rating: ${s.rating || 'N/A'})<br>
-                ${s.image ? `<img src="${UPLOADS_BASE}/${s.image}" alt="${s.name}" 
+                ${s.image ? `<img src="${s.image}" alt="${s.name}" 
                      class="h-12 rounded mt-2" onerror="this.style.display='none'">` : ''}
             </span>
             <span class="flex space-x-2">
@@ -1010,8 +1010,8 @@ async function loadStories() {
                     <td>${u.email}</td>
                     <td>${u.role || 'N/A'}</td>
                     <td>${u.phone || 'N/A'}</td>
-                    <td>${u.cv_path ? `<a href="${UPLOADS_BASE}/${u.cv_path}" target="_blank" class="text-blue-400 hover:underline">Download CV</a>` : 'N/A'}</td>
-                `;
+<td>${u.cv_path ? `<a href="${u.cv_path}" target="_blank" class="text-blue-400 hover:underline">Download CV</a>` : 'N/A'}</td>`;
+                
                 container.appendChild(row);
             });
         }
