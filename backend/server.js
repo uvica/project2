@@ -29,16 +29,17 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin) return callback(null, true); // Postman or server-side request
-        if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // Postman or server-side
+    if (allowedOrigins.some(o => origin.startsWith(o))) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
+
 
 // Serve uploads (only for local testing; optional if using Cloudinary)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
