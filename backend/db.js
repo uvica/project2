@@ -29,4 +29,14 @@ pool.getConnection()
         process.exit(1);
     });
 
+    const caPath = path.join(__dirname, process.env.DB_CA || 'certs/tidb-ca.pem');
+console.log('CA path:', caPath);
+
+if (!fs.existsSync(caPath)) {
+    console.error('❌ Certificate file NOT found at path:', caPath);
+} else {
+    console.log('✅ Certificate file exists at path:', caPath);
+}
+
+
 module.exports = pool;
