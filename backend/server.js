@@ -21,14 +21,13 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const allowedOrigins = [
-    process.env.FRONTEND_URL, // For deployed frontend
-    'http://localhost:3000', // For local dev (React)
-    'http://localhost:5173'  // For Vite-based frontends
+    process.env.FRONTEND_URL,
+    'http://localhost:3000',
+    'http://localhost:5173'
 ].filter(Boolean);
-
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin) return callback(null, true); // Allow Postman, curl
+        if (!origin) return callback(null, true);
         if (allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
@@ -38,12 +37,12 @@ app.use(cors({
     credentials: true
 }));
 
-// Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'Uploads')));
+// Serve uploaded files (for local testing)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Test uploads folders exist
-['partners', 'success_stories'].forEach(folder => {
-    const dir = path.join(__dirname, 'Uploads', folder);
+// Create folders if missing
+['partners', 'success_stories', 'registrations'].forEach(folder => {
+    const dir = path.join(__dirname, 'uploads', folder);
     if (!require('fs').existsSync(dir)) require('fs').mkdirSync(dir, { recursive: true });
 });
 
@@ -56,32 +55,6 @@ app.use('/api/stories', storiesRouter);
 app.use('/api/site_stats', siteStatsRouter);
 app.use('/api/admins', adminsRouter);
 app.use('/api/registrations', registrationsRouter);
-
-// Temporary test endpoints
-app.get('/test-partners', (req, res) => res.json({ message: 'Partners route works!' }));
-app.get('/test-stories', (req, res) => res.json({ message: 'Stories route works!' }));
-
-// Debug routes
-app.get('/api/debug', async (req, res) => {
-    try {
-        await db.execute('SELECT 1 as test');
-        res.json({ status: 'OK', database: 'Connected', timestamp: new Date().toISOString() });
-    } catch (err) {
-        res.status(500).json({ status: 'Error', database: 'Connection failed', error: err.message });
-    }
-});
-
-app.get('/api/debug/uploads', (req, res) => {
-    const fs = require('fs');
-    const uploadsPath = path.join(__dirname, 'Uploads');
-    try {
-        const partners = fs.readdirSync(path.join(uploadsPath, 'partners'));
-        const stories = fs.readdirSync(path.join(uploadsPath, 'success_stories'));
-        res.json({ uploadsDir: uploadsPath, partners, stories });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
-});
 
 // Health check
 app.get('/health', (req, res) => {
