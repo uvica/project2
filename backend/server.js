@@ -52,7 +52,7 @@ app.use('/api/users', usersRouter);
 app.use('/api/faqs', faqsRouter);
 app.use('/api/partners', partnersRouter);
 app.use('/api/stories', storiesRouter);
-app.use('/api/site_stats', siteStatsRouter);
+app.use('', siteStatsRouter);
 app.use('/api/admins', adminsRouter);
 app.use('/api/registrations', registrationsRouter);
 
