@@ -4,14 +4,12 @@ const db = require('../db');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 
-// Configure Cloudinary
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-// Multer configuration for memory storage
 const storage = multer.memoryStorage();
 const upload = multer({
     storage,
@@ -24,22 +22,19 @@ const upload = multer({
             cb(new Error('Only PDF, DOC, DOCX files are allowed!'));
         }
     },
-    limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+    limits: { fileSize: 5 * 1024 * 1024 }
 });
 
-// Register user
 router.post('/', upload.single('cv'), async (req, res) => {
     const { fullName, email, phone, role } = req.body;
     if (!fullName || !email || !req.file) {
         return res.status(400).json({ error: 'Full name, email, and CV are required' });
     }
     try {
-        // Check for existing email in registrations table
         const [existing] = await db.query('SELECT id FROM registrations WHERE email = ?', [email]);
         if (existing.length > 0) {
             return res.status(400).json({ error: 'Email already exists' });
         }
-        // Upload CV to Cloudinary
         const result = await new Promise((resolve, reject) => {
             cloudinary.uploader.upload_stream(
                 { folder: 'registrations', resource_type: 'raw' },
@@ -50,7 +45,6 @@ router.post('/', upload.single('cv'), async (req, res) => {
             ).end(req.file.buffer);
         });
         const cv_path = result.secure_url;
-        // Insert into registrations table
         const [dbResult] = await db.query(
             'INSERT INTO registrations (full_name, email, phone, role, cv_path) VALUES (?, ?, ?, ?, ?)',
             [fullName, email, phone, role, cv_path]

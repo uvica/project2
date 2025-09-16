@@ -26,7 +26,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Login (optional, if needed)
+// Login admin
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
