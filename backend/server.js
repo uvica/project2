@@ -20,14 +20,17 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// CORS - allow frontend + localhost
 const allowedOrigins = [
-    process.env.FRONTEND_URL,
+    process.env.FRONTEND_URL,               // Vercel frontend
     'http://localhost:3000',
     'http://localhost:5173'
 ].filter(Boolean);
+
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
+        if (!origin) return callback(null, true); // Postman or server-side request
         if (allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
@@ -37,22 +40,23 @@ app.use(cors({
     credentials: true
 }));
 
-// Serve uploaded files (for local testing)
+// Serve uploads (only for local testing; optional if using Cloudinary)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Create folders if missing
+// Create folders if missing (local only)
 ['partners', 'success_stories', 'registrations'].forEach(folder => {
     const dir = path.join(__dirname, 'uploads', folder);
     if (!require('fs').existsSync(dir)) require('fs').mkdirSync(dir, { recursive: true });
 });
 
-// Mount routers
+// Mount routers under /api
 app.use('/api/courses', coursesRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/faqs', faqsRouter);
 app.use('/api/partners', partnersRouter);
 app.use('/api/stories', storiesRouter);
-app.use('', siteStatsRouter);
+app.use('/api/site_stats', siteStatsRouter);
+
 app.use('/api/admins', adminsRouter);
 app.use('/api/registrations', registrationsRouter);
 
@@ -61,7 +65,9 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Catch-all
+// Catch-all for undefined routes
+app.get('/api/test', (req, res) => res.json({ ok: true }));
+
 app.use((req, res) => res.status(404).json({ error: 'Route not found' }));
 
 // Start server

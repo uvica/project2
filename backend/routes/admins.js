@@ -1,3 +1,5 @@
+console.log('✅ Admins router loaded');
+
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
