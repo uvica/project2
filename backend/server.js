@@ -1,76 +1,117 @@
-const express = require('express');
-const multer = require('multer');
-const cors = require('cors');
-const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
-const db = require('./db');
+// server.js
 
-// Routers
-const coursesRouter = require('./routes/courses');
-const usersRouter = require('./routes/users');
-const faqsRouter = require('./routes/faqs');
-const partnersRouter = require('./routes/partners');
-const storiesRouter = require('./routes/success_stories');
-const siteStatsRouter = require('./routes/siteStats');
-const adminsRouter = require('./routes/admins');
-const registrationsRouter = require('./routes/registrations');
 
+import fs from "fs";
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import mysql from "mysql2";
+
+dotenv.config();
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// CORS - allow frontend + localhost
-const allowedOrigins = [
-    process.env.FRONTEND_URL,               // Vercel frontend
-    'http://localhost:3000',
-    'http://localhost:5173'
-].filter(Boolean);
-
+// ----------------- CORS Setup -----------------
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // Postman or server-side
-    if (allowedOrigins.some(o => origin.startsWith(o))) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: "https://project2-6s98.vercel.app/", // your frontend
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
 
+// ----------------- Middleware -----------------
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Serve uploads (only for local testing; optional if using Cloudinary)
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Create folders if missing (local only)
-['partners', 'success_stories', 'registrations'].forEach(folder => {
-    const dir = path.join(__dirname, 'uploads', folder);
-    if (!require('fs').existsSync(dir)) require('fs').mkdirSync(dir, { recursive: true });
+// ----------------- Database -----------------
+const db = mysql.createPool({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+   ssl: {
+     ca: fs.readFileSync("./tibd-cv.pem")
+      }
 });
 
-// Mount routers under /api
-app.use('/api/courses', coursesRouter);
-app.use('/api/users', usersRouter);
-app.use('/api/faqs', faqsRouter);
-app.use('/api/partners', partnersRouter);
-app.use('/api/stories', storiesRouter);
-app.use('/api/site_stats', siteStatsRouter);
-
-app.use('/api/admins', adminsRouter);
-app.use('/api/registrations', registrationsRouter);
-
-// Health check
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+db.getConnection((err, connection) => {
+  if (err) {
+    console.error("DB Connection Error:", err);
+  } else {
+    console.log("DB Connected with SSL!");
+    connection.release();
+  }
 });
 
-// Catch-all for undefined routes
-app.get('/api/test', (req, res) => res.json({ ok: true }));
 
-app.use((req, res) => res.status(404).json({ error: 'Route not found' }));
+// ----------------- Routes -----------------
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+// Root
+app.get("/", (req, res) => res.send("Backend is running!"));
+
+// site_stats
+app.get("/site_stats", (req, res) => {
+  const query = "SELECT * FROM site_stats LIMIT 1";
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error("DB Error:", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(result[0] || {});
+  });
+});
+
+// courses
+app.get("/courses", (req, res) => {
+  const query = "SELECT * FROM courses";
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error("DB Error:", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(result);
+  });
+});
+
+// users
+app.get("/users", (req, res) => {
+  const query = "SELECT * FROM users";
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error("DB Error:", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(result);
+  });
+});
+
+// partners
+app.get("/partners", (req, res) => {
+  const query = "SELECT * FROM partners";
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error("DB Error:", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(result);
+  });
+});
+
+// stories
+app.get("/stories", (req, res) => {
+  const query = "SELECT * FROM stories";
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error("DB Error:", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(result);
+  });
+});
+
+// ----------------- Start Server -----------------
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
