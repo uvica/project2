@@ -1,9 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
-
-
-
 // GET all courses
 router.get('/', async (req, res) => {
     try {
@@ -58,6 +55,9 @@ router.post('/', async (req, res) => {
 // UPDATE course
 router.put('/:id', async (req, res) => {
     const { icon, title, description, full_description, duration, level, features } = req.body;
+    if (!title) {
+        return res.status(400).json({ error: 'Title is required' });
+    }
     try {
         const [existing] = await db.query('SELECT id FROM courses WHERE id = ?', [req.params.id]);
         if (existing.length === 0) {

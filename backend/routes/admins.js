@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+const bcrypt = require('bcrypt');
 
 // POST admin login
 router.post('/login', async (req, res) => {
@@ -10,7 +11,7 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ error: 'Email and password are required' });
         }
         const [admins] = await db.query('SELECT * FROM admins WHERE email = ?', [email]);
-        if (admins.length === 0 || admins[0].password !== password) {
+        if (admins.length === 0 || !await bcrypt.compare(password, admins[0].password)) {
             return res.status(401).json({ error: 'Invalid email or password' });
         }
         res.json({ message: 'Login successful', admin: { id: admins[0].id, email: admins[0].email } });

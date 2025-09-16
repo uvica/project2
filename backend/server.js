@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const cors = require('cors');
 const path = require('path');
-require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const db = require('./db');
 
 // Routers
@@ -20,17 +20,30 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+const allowedOrigins = [
+    process.env.FRONTEND_URL, // For deployed frontend
+    'http://localhost:3000', // For local dev (React)
+    'http://localhost:5173'  // For Vite-based frontends
+].filter(Boolean);
+
 app.use(cors({
-    origin: true, // Allow all origins
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true); // Allow Postman, curl
+        if (allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 
 // Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'Uploads')));
 
 // Test uploads folders exist
 ['partners', 'success_stories'].forEach(folder => {
-    const dir = path.join(__dirname, 'uploads', folder);
+    const dir = path.join(__dirname, 'Uploads', folder);
     if (!require('fs').existsSync(dir)) require('fs').mkdirSync(dir, { recursive: true });
 });
 
@@ -60,7 +73,7 @@ app.get('/api/debug', async (req, res) => {
 
 app.get('/api/debug/uploads', (req, res) => {
     const fs = require('fs');
-    const uploadsPath = path.join(__dirname, 'uploads');
+    const uploadsPath = path.join(__dirname, 'Uploads');
     try {
         const partners = fs.readdirSync(path.join(uploadsPath, 'partners'));
         const stories = fs.readdirSync(path.join(uploadsPath, 'success_stories'));
