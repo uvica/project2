@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 5000;
 
 // ----------------- CORS Setup -----------------
 app.use(cors({
-  origin: "https://project2-6s98.vercel.app/", // your frontend
+  origin: process.env.FRONTEND_URL, // your frontend
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
