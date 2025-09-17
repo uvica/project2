@@ -17,36 +17,39 @@ export const createUploader = (folder) => {
   const explicitlyEnabled = String(process.env.CLOUDINARY_ENABLED || '').toLowerCase() === 'true';
   const hasCloudinaryCreds = Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
   const useCloudinary = explicitlyEnabled && hasCloudinaryCreds;
-  const imageOnlyFilter = (_req, file, cb) => {
-    if (file && typeof file.mimetype === 'string' && file.mimetype.startsWith('image/')) {
-      return cb(null, true);
-    }
-    cb(new Error('Only image files are allowed'));
-  };
+
   if (useCloudinary) {
     const storage = new CloudinaryStorage({
       cloudinary,
       params: {
         folder,
-        // Broad list; Cloudinary still validates file signatures
-        allowed_formats: ['jpg','jpeg','png','webp','gif','bmp','tiff','tif','svg','heic','heif','avif']
+        allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+        transformation: [{ quality: 'auto' }],
+        public_id: (req, file) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+          return `${folder}/${uniqueSuffix}`;
+        }
       }
     });
-    return multer({ storage, fileFilter: imageOnlyFilter });
+    return multer({ 
+      storage,
+      limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+    });
   }
 
-  // Fallback to local disk storage when Cloudinary is not configured
+  // Local storage fallback
   const uploadsDir = path.resolve('uploads', folder);
   if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
   const storage = multer.diskStorage({
     destination: (_, __, cb) => cb(null, uploadsDir),
     filename: (_, file, cb) => {
-      const ext = path.extname(file.originalname) || '.png';
+      const ext = path.extname(file.originalname) || '.webp';
       const name = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext}`;
       cb(null, name);
     }
   });
-  return multer({ storage, fileFilter: imageOnlyFilter });
+  return multer({ storage });
 };
 
 export { cloudinary };
+

@@ -1645,7 +1645,7 @@ const API_BASE =  "http://localhost:5000/api";
       const box = document.createElement('div');
       box.className = 'partner-box';
       const img = document.createElement('img');
-      let src = p.logo_path || '';
+      let src = p.logo_url || '';
       try {
         if (src && !/^https?:\/\//i.test(src)) {
           // Ensure leading slash and build absolute URL using current origin

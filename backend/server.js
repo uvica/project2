@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import mysql from "mysql2/promise";
+import multer from 'multer';
 
 dotenv.config();
 const app = express();
@@ -35,6 +36,15 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('uploads'));
+
+// Add error handling middleware before routes
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: 'File upload error: ' + err.message });
+  }
+  next(err);
+});
 
 // ----------------- Database Connection -----------------
 let sslConfig;

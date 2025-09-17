@@ -1310,7 +1310,7 @@ async function loadStories() {
         div.innerHTML = `
             <span>
                 <strong>${p.name}</strong> - 
-                <img src="${/^https?:\/\//.test(p.logo_path) ? p.logo_path : ('http://localhost:5000' + (p.logo_path?.startsWith('/') ? p.logo_path : ('/' + p.logo_path)))}" alt="${p.name}" 
+                <img src="${/^https?:\/\//.test(p.logo_url) ? p.logo_url : ('http://localhost:5000' + (p.logo_url?.startsWith('/') ? p.logo_url : ('/' + p.logo_url)))}" alt="${p.name}" 
      style="height:50px; border-radius:5px; margin-top:5px;" 
      onerror="this.src='https://placehold.co/150x80?text=Image+Not+Found'">
 
@@ -1398,30 +1398,36 @@ async function loadStories() {
        function renderStories(stories) {
     const container = document.getElementById('storyList');
     if (!container) return;
-    
-    // Clear previous content
+
     container.innerHTML = '';
-    
+
     if (stories.length === 0) {
         container.innerHTML = '<p class="text-gray-400 text-center py-4">No success stories found.</p>';
         return;
     }
-    
+
     stories.forEach(s => {
         const div = document.createElement('div');
         div.className = 'item-row';
+        // Use s.image for the image path
+        // If s.image starts with http, use as is; else prefix with backend URL
+        let imgSrc = s.image
+            ? (/^https?:\/\//.test(s.image) ? s.image : `http://localhost:5000${s.image.startsWith('/') ? s.image : '/' + s.image}`)
+            : '';
         div.innerHTML = `
             <span class="flex-1">
                 <strong>${s.name || 'Unknown'}</strong> - ${s.role || 'N/A'} at ${s.company || 'N/A'} 
                 (Rating: ${s.rating || 'N/A'})<br>
-                ${s.image ? `<img src="${s.image}" alt="${s.name}" 
+                ${imgSrc ? `<img src="${imgSrc}" alt="${s.name}" 
                      class="h-12 rounded mt-2" onerror="this.style.display='none'">` : ''}
             </span>
             <span class="flex space-x-2">
-                <button class="btn-secondary text-xs" onclick='openStoryModal(${JSON.stringify(s).replace(/'/g, "\\'")})'>Edit</button>
-                <button class="btn-danger text-xs" onclick="deleteStory(${s.id})">Delete</button>
+                <button class="btn-secondary text-xs edit-story-btn">Edit</button>
+                <button class="btn-danger text-xs delete-story-btn">Delete</button>
             </span>
         `;
+        div.querySelector('.edit-story-btn').addEventListener('click', () => openStoryModal(s));
+        div.querySelector('.delete-story-btn').addEventListener('click', () => deleteStory(s.id));
         container.appendChild(div);
     });
 }
@@ -1482,11 +1488,18 @@ async function loadStories() {
                 row.innerHTML = `
                     <td>${u.full_name}</td>
                     <td>${u.email}</td>
-                    <td>${u.role || 'N/A'}</td>
+                    <td>${u.roles || 'N/A'}</td>
                     <td>${u.phone || 'N/A'}</td>
-                <td>${u.cv_path ? `<button onclick="downloadCV(${u.id}, '${u.full_name}')" class="text-blue-400 hover:text-blue-300 hover:underline font-medium transition-colors flex items-center bg-transparent border-none cursor-pointer">
-                    <i class="fas fa-download mr-2"></i>Download CV
-                </button>` : '<span class="text-gray-500">No CV</span>'}</td>`;
+                    <td>
+                      ${u.cv
+                        ? `<a href="${API_BASE}/users/cv/${u.id}" download="${(u.cv_name || u.full_name || 'CV').replace(/[^a-zA-Z0-9.-]/g, '_')}" class="text-blue-400 hover:text-blue-300 hover:underline font-medium transition-colors flex items-center bg-transparent border-none cursor-pointer">
+                            <i class="fas fa-download mr-2"></i>${u.cv_name ? u.cv_name : 'Download CV'}
+                          </a>`
+                        : '<span class="text-gray-500">No CV</span>'
+                      }
+                    </td>
+                `;
+
                 
                 container.appendChild(row);
             });
