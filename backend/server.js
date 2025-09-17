@@ -21,7 +21,7 @@ const allowedOrigins = new Set([
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
+    if (!origin) return callback(null, true); // allow non-browser requests like Postman
     const o = origin.replace(/\/$/, "");
     if (allowedOrigins.has(o)) return callback(null, true);
     return callback(new Error("Not allowed by CORS"));
@@ -29,6 +29,8 @@ app.use(cors({
   methods: ["GET","POST","PUT","DELETE"],
   credentials: true
 }));
+
+
 // ----------------- Middleware -----------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
