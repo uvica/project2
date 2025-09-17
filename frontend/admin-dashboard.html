@@ -1443,20 +1443,14 @@ async function loadStories() {
         // Download CV function
         async function downloadCV(userId, userName) {
             try {
-                console.log(`Downloading CV for user ${userId} (${userName})`);
-                
-                // Create a temporary link element to trigger download
+                // Use the correct endpoint for registrations
                 const link = document.createElement('a');
-                link.href = `${API_BASE}/users/cv/${userId}`;
-                link.download = `${userName.replace(/[^a-zA-Z0-9.-]/g, '_')}_CV`;
+                link.href = `${API_BASE}/registrations/${userId}/cv`;
+                link.download = `${userName.replace(/[^a-zA-Z0-9.-]/g, '_')}_CV.pdf`;
                 link.target = '_blank';
-                
-                // Append to body, click, then remove
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                
-                console.log('Download initiated');
             } catch (error) {
                 console.error('Error downloading CV:', error);
                 alert('Failed to download CV. Please try again.');
