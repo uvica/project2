@@ -42,9 +42,19 @@
             border-radius: 0.375rem; 
             border: none; 
             cursor: pointer; 
-            transition: 0.2s; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
-        .btn-primary:hover { background-color: #2563eb; }
+        .btn-primary:hover { 
+            background-color: #2563eb; 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+            transition: all 0.1s ease;
+        }
         .btn-secondary { 
             background-color: #6b7280; 
             color: white; 
@@ -52,15 +62,31 @@
             border-radius: 0.375rem; 
             border: none; 
             cursor: pointer; 
-            transition: 0.2s; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
-        .btn-secondary:hover { background-color: #4b5563; }
+        .btn-secondary:hover { 
+            background-color: #4b5563; 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(107, 114, 128, 0.4);
+        }
+        .btn-secondary:active {
+            transform: translateY(0);
+            transition: all 0.1s ease;
+        }
         .card { 
             background-color: #1f2937; 
             border-radius: 0.5rem; 
             padding: 1.5rem; 
             margin-bottom: 1rem; 
             border: 1px solid #374151; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-color: #4b5563;
         }
         .modal { 
             position: fixed; 
@@ -100,10 +126,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: background-color 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .faq-question:hover {
             background-color: #4b5563;
+            transform: translateX(4px);
+        }
+        .faq-question:active {
+            transform: translateX(2px);
+            transition: all 0.1s ease;
         }
         .faq-icon {
             font-size: 1.5rem;
@@ -128,6 +159,54 @@
             transition: opacity 0.5s ease-out, transform 0.5s ease-out;
         }
         .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Pulse animation for important elements */
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .8;
+            }
+        }
+        
+        /* Bounce animation for CTAs */
+        .bounce {
+            animation: bounce 1s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% {
+                animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+                transform: translate3d(0,0,0);
+            }
+            40%, 43% {
+                animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+                transform: translate3d(0, -8px, 0);
+            }
+            70% {
+                animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+                transform: translate3d(0, -4px, 0);
+            }
+            90% {
+                transform: translate3d(0,-2px,0);
+            }
+        }
+        
+        /* Stagger animation for lists */
+        .stagger-item {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .stagger-item.visible {
             opacity: 1;
             transform: translateY(0);
         }
@@ -157,12 +236,22 @@
             max-width: 8rem;
             width: auto;
             flex-shrink: 0;
-            filter: grayscale(1) opacity(0.7);
-            transition: filter 0.3s ease;
+            /* Show logos in full color */
+            filter: none;
+            opacity: 1;
+            transition: transform 0.2s ease;
             display: block;
         }
         .partner-logo:hover {
-            filter: grayscale(0) opacity(1);
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+        .partner-box {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .partner-box:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
         }
         .carousel-container {
             position: relative;
@@ -170,11 +259,16 @@
             max-width: 60rem;
             margin: 0 auto;
             overflow: hidden;
+            touch-action: pan-y;
         }
         .carousel-track {
             display: flex;
-            transition: transform 0.5s ease-in-out;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
+            cursor: grab;
+        }
+        .carousel-track:active {
+            cursor: grabbing;
         }
         .carousel-item {
             min-width: 100%;
@@ -244,14 +338,21 @@
             border-radius: 50%;
             cursor: pointer;
             z-index: 10;
-            transition: background-color 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.75rem;
+            backdrop-filter: blur(10px);
         }
         .carousel-button:hover {
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        .carousel-button:active {
+            transform: translateY(-50%) scale(0.95);
+            transition: all 0.1s ease;
         }
         .carousel-button.prev {
             left: 2rem;
@@ -275,10 +376,17 @@
             border-radius: 50%;
             margin: 0 0.3rem;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .carousel-dot:hover {
+            transform: scale(1.2);
+            background-color: #6b7280;
         }
         .carousel-dot.active {
             background-color: #a855f7;
+            transform: scale(1.3);
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.3);
         }
         .internship-heading {
             border: 2px solid #4b5563;
@@ -289,11 +397,16 @@
         }
         .course-card {
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(0);
         }
         .course-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+        }
+        .course-card:active {
+            transform: translateY(-4px) scale(0.98);
+            transition: all 0.1s ease;
         }
         .course-modal-content {
             max-width: 600px;
@@ -376,6 +489,13 @@
                         <span class="text-green-400 ml-2">CareerCraft</span>
                     </div>
                 </div>
+                <div class="hidden md:flex items-center gap-2">
+                    <a href="#learn" class="px-3 py-1.5 rounded-full text-sm bg-gray-800 hover:bg-gray-700 text-gray-200 transition-colors">Learn</a>
+                    <a href="#build" class="px-3 py-1.5 rounded-full text-sm bg-gray-800 hover:bg-gray-700 text-gray-200 transition-colors">Build</a>
+                    <a href="#launch" class="px-3 py-1.5 rounded-full text-sm bg-gray-800 hover:bg-gray-700 text-gray-200 transition-colors">Launch</a>
+                    <a href="#internship" class="px-3 py-1.5 rounded-full text-sm bg-gray-800 hover:bg-gray-700 text-gray-200 transition-colors">Intern</a>
+                    <a href="#get-hired" class="px-3 py-1.5 rounded-full text-sm bg-gray-800 hover:bg-gray-700 text-gray-200 transition-colors">Get Hired</a>
+                </div>
                 <div class="flex items-center space-x-4">
                     <button onclick="showRegistrationModal()" class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors">
                         Register Now
@@ -397,9 +517,9 @@
                 <h1 class="text-5xl md:text-7xl font-bold mb-8">
                     <span class="text-blue-400">TalentConnect</span>
                     <span class="text-green-400 ml-4">CareerCraft</span>
-                </h1>
-                <h2 class="text-2xl md:text-3xl mb-8 text-gray-300">
-                    Learn. Build. Launch. Intern. Get Hired.
+              
+                <h2 class="text-2xl md:text-3xl mb-8 text-gray-300" id="tagline">
+                    <!-- Learn. Build. Launch. Intern. Get Hired. -->
                 </h2>
                 <p class="text-lg text-gray-400 mb-12 max-w-4xl mx-auto">
                     An innovation-driven platform dedicated to bridging the gap between academic learning and professional success. 
@@ -407,10 +527,10 @@
                     in today's rapidly evolving tech landscape.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                    <button onclick="showRegistrationModal()" class="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg text-lg font-semibold transition-colors">
+                    <button onclick="showRegistrationModal()" class="bg-blue-600 hover:bg-blue-700 px-8 py-4 rounded-lg text-lg font-semibold transition-colors pulse">
                         Start Your Journey Today
                     </button>
-                    <button class="border border-gray-600 hover:border-gray-500 px-8 py-4 rounded-lg text-lg font-semibold transition-colors">
+                    <button onclick="scrollToCourses()" class="border border-gray-600 hover:border-gray-500 px-8 py-4 rounded-lg text-lg font-semibold transition-colors">
                         Explore Programs
                     </button>
                 </div>
@@ -422,22 +542,22 @@
             <div class="max-w-6xl mx-auto text-center">
                 <h2 class="text-3xl md:text-4xl font-bold mb-12 text-white">Our Program Highlights</h2>
                 <div class="grid md:grid-cols-4 gap-8 text-center">
-                    <div class="stat-box bg-gray-800/70 p-6 rounded-xl shadow-lg">
+                    <div class="stat-box bg-gray-800/70 p-6 rounded-xl shadow-lg stagger-item">
                         <div class="text-5xl mb-4">📚</div>
                         <div id="programDuration" class="text-3xl font-bold text-blue-400">--</div>
                         <div class="text-gray-400">Program Duration</div>
                     </div>
-                    <div class="stat-box bg-gray-800/70 p-6 rounded-xl shadow-lg">
+                    <div class="stat-box bg-gray-800/70 p-6 rounded-xl shadow-lg stagger-item">
                         <div class="text-5xl mb-4">🎯</div>
                         <div id="courseTracks" class="text-3xl font-bold text-green-400">--</div>
                         <div class="text-gray-400">Course Tracks</div>
                     </div>
-                    <div class="stat-box bg-gray-800/70 p-6 rounded-xl shadow-lg">
+                    <div class="stat-box bg-gray-800/70 p-6 rounded-xl shadow-lg stagger-item">
                         <div class="text-5xl mb-4">👨‍💼</div>
                         <div id="placementRate" class="text-3xl font-bold text-yellow-400">--</div>
                         <div class="text-gray-400">Placement Rate</div>
                     </div>
-                    <div class="stat-box bg-gray-800/70 p-6 rounded-xl shadow-lg">
+                    <div class="stat-box bg-gray-800/70 p-6 rounded-xl shadow-lg stagger-item">
                         <div class="text-5xl mb-4">👨‍🏫</div>
                         <div id="industryMentors" class="text-3xl font-bold text-purple-400">--</div>
                         <div class="text-gray-400">Industry Mentors</div>
@@ -527,7 +647,7 @@
         </section>
 
         <!-- Course Offerings -->
-        <section class="py-16 px-4 bg-gray-800/30">
+        <section class="py-16 px-4 bg-gray-800/30" id="learn">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-12">
                     <h2 class="text-3xl md:text-4xl font-bold mb-6">Comprehensive Course Offerings</h2>
@@ -555,7 +675,7 @@
         </section>
 
         <!-- Program Structure -->
-        <section class="py-16 px-4">
+        <section class="py-16 px-4" id="build">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-12">
                     <h2 class="text-3xl md:text-4xl font-bold mb-6">Program Structure: Hands-On & Project-Driven</h2>
@@ -576,7 +696,7 @@
                         <h4 class="text-lg font-medium mb-3">Live Project Incubation</h4>
                         <p class="text-gray-400">Work on a real-world project under the guidance of industry mentors.</p>
                     </div>
-                    <div class="text-center">
+                    <div class="text-center" id="launch">
                         <div class="text-6xl mb-4">🚀</div>
                         <h3 class="text-xl font-semibold mb-3 text-purple-400">Month 3</h3>
                         <h4 class="text-lg font-medium mb-3">Product Release & Refinement</h4>
@@ -648,7 +768,7 @@
             </section>
 
         <!-- Internship Section -->
-        <section class="py-16 px-4">
+        <section class="py-16 px-4" id="internship">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-12">
                     <h2 class="text-3xl md:text-4xl font-bold mb-6">Internship Opportunity</h2>
@@ -698,7 +818,7 @@
         </section>
 
         <!-- Placement Support -->
-        <section class="py-16 px-4 bg-gray-800/30">
+        <section class="py-16 px-4 bg-gray-800/30" id="get-hired">
             <div class="max-w-6xl mx-auto">
                 <div class="text-center mb-12">
                     <h2 class="text-3xl md:text-4xl font-bold mb-6">Guaranteed Placement Support</h2>
@@ -758,7 +878,7 @@
             <div class="max-w-6xl mx-auto text-center">
                 <h2 class="text-3xl md:text-4xl font-bold mb-12 text-white">Our Hiring Partners</h2>
                 <div class="relative">
-                    <button id="prevPartner" class="carousel-button prev absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800/70 hover:bg-gray-700 text-white rounded-full w-10 h-10 flex items-center justify-center z-10 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <button id="prevPartner" class="carousel-button prev absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800/70 hover:bg-gray-700 text-white rounded-full w-10 h-10 flex items-center justify-center z-10">
                         ‹
                     </button>
                     <div class="carousel-container overflow-x-hidden">
@@ -993,19 +1113,33 @@
         <section id="register" class="bg-gray-800 py-12 px-4 hidden">
             <div class="max-w-lg mx-auto text-center">
                 <h2 class="text-2xl md:text-3xl font-bold mb-6 text-white">Register for CareerCraft</h2>
-                <form id="registrationForm" class="space-y-4">
-                    <input type="text" placeholder="Full Name" class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" required>
-                    <input type="email" placeholder="Email" class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" required>
-                    <input type="tel" placeholder="Phone Number" class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" required>
-                    <select class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" required>
-                        <option value="" disabled selected>Select Program</option>
-                        <option value="mern">MERN Full Stack</option>
-                        <option value="ai">Artificial Intelligence</option>
-                        <option value="mobile">Mobile App Development</option>
-                        <option value="pm">Product Management</option>
-                        <option value="uiux">UI/UX Design</option>
-                        <option value="cloud">Cloud Computing</option>
-                    </select>
+                <form id="registrationForm" onsubmit="handleRegistration(event)" enctype="multipart/form-data" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-white">Full Name</label>
+                        <input type="text" name="fullName" required class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" placeholder="Enter full name" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-white">Email</label>
+                        <input type="email" name="email" required class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" placeholder="Enter email" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-white">Phone</label>
+                        <input type="tel" name="phone" required class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" placeholder="Enter phone" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-white">Role</label>
+                        <select name="role" required class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500">
+                            <option value="" disabled selected>Select your role</option>
+                            <option value="student">Student</option>
+                            <option value="working-professional">Working Professional</option>
+                            <option value="fresh-graduate">Fresh Graduate</option>
+                            <option value="career-changer">Career Changer</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2 text-white">Upload CV</label>
+                        <input type="file" name="cv" accept=".pdf,.doc,.docx" required class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" />
+                    </div>
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold transition-colors w-full">Submit Registration</button>
                 </form>
                 <p id="registerMessage" class="mt-4 text-green-400 hidden">Registration submitted successfully!</p>
@@ -1063,7 +1197,7 @@
 
         <script>
   // ----------------- API Configuration -----------------
-const API_BASE = "https://project2-air7.onrender.com/api";
+const API_BASE =  "http://localhost:5000/api";
 
   // ----------------- FAQ Data -----------------
   const faqs = [
@@ -1098,6 +1232,7 @@ const API_BASE = "https://project2-air7.onrender.com/api";
     console.log('DOM loaded, initializing page...');
     initializePage();
     animateOnScroll();
+    animateStaggerItems();
   });
 
   // ----------------- Initialize Page -----------------
@@ -1110,6 +1245,31 @@ const API_BASE = "https://project2-air7.onrender.com/api";
     populateFAQs();
     setupEventListeners();
     console.log('Page initialized successfully!');
+  }
+
+  // Lightweight markdown renderer for trusted content (bold, italics, lists, links, code)
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+  function renderMarkdown(md) {
+    if (!md) return '';
+    let html = escapeHtml(md);
+    // Code blocks (inline)
+    html = html.replace(/`([^`]+)`/g, '<code class="bg-gray-800 px-1 py-0.5 rounded">$1</code>');
+    // Bold and italics
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+    // Links [text](url)
+    html = html.replace(/\[([^\]]+)\]\((https?:[^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="text-blue-400 underline">$1</a>');
+    // Line breaks
+    html = html.replace(/\n{2,}/g, '</p><p>').replace(/\n/g, '<br/>');
+    // Wrap paragraphs
+    return `<p>${html}</p>`;
   }
 
   // ----------------- Load Site Stats -----------------
@@ -1217,16 +1377,27 @@ const API_BASE = "https://project2-air7.onrender.com/api";
     if (!modal || !title || !content) return;
 
     title.textContent = course.title;
+    // Normalize features from comma/newline separated string or array
+    const featureItems = (() => {
+      if (!course.features) return [];
+      if (Array.isArray(course.features)) return course.features.filter(Boolean);
+      return String(course.features)
+        .split(/\n|,/)
+        .map(s => s.trim())
+        .filter(Boolean);
+    })();
+
     content.innerHTML = `
       <div class="text-4xl mb-4">${course.icon || '📚'}</div>
-      <p><strong>Duration:</strong> ${course.duration || 'N/A'}</p>
-      <p><strong>Level:</strong> ${course.level || 'N/A'}</p>
-      <p class="mt-4">${course.full_description || 'No description available.'}</p>
+      <div class="text-sm text-gray-400 mb-2">${course.duration || 'N/A'} • ${course.level || 'N/A'}</div>
+      <div class="prose prose-invert max-w-none">${renderMarkdown(course.full_description || 'No description available.')}</div>
       <h3 class="text-lg font-semibold mt-6 mb-3 text-blue-400">What You'll Learn</h3>
       <ul class="course-features">
-        ${course.features?.length ? course.features.map(f => `<li>${f}</li>`).join('') : '<li>No features listed</li>'}
+        ${featureItems.length ? featureItems.map(f => `<li><span>${escapeHtml(f)}</span></li>`).join('') : '<li>No features listed</li>'}
       </ul>
-      <button class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg mt-6" onclick="showRegistrationModal()">Enroll Now</button>
+      <div class="mt-6 flex gap-3">
+        <button class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg" onclick="showRegistrationModal()">Enroll Now</button>
+      </div>
     `;
     modal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
@@ -1239,6 +1410,13 @@ const API_BASE = "https://project2-air7.onrender.com/api";
       document.body.style.overflow = 'auto';
     }
   }
+
+  // ----------------- Touch Interaction Variables -----------------
+  let touchStartX = 0;
+  let touchEndX = 0;
+  let isDragging = false;
+  let dragStartX = 0;
+  let dragCurrentX = 0;
 
   // ----------------- Success Stories -----------------
   let currentStoryIndex = 0;
@@ -1281,7 +1459,7 @@ const API_BASE = "https://project2-air7.onrender.com/api";
           <div class="carousel-role">${story.role || ''}</div>
           <div class="carousel-company">${story.company || ''}</div>
         </div>
-        <img src="${story.image || 'https://via.placeholder.com/150'}" alt="${story.name || 'Anonymous'}" class="carousel-image">
+        <img src="${story.image || 'https://placehold.co/150x150?text=No+Image'}" alt="${story.name || 'Anonymous'}" class="carousel-image">
         <button class="carousel-button next" onclick="nextStory()">&#8250;</button>
       `;
       track.appendChild(storyItem);
@@ -1293,6 +1471,8 @@ const API_BASE = "https://project2-air7.onrender.com/api";
       dotsContainer.appendChild(dot);
     });
 
+    // Add touch event listeners
+    addTouchListeners(track, 'success-stories');
     updateCarousel();
   }
 
@@ -1346,161 +1526,359 @@ const API_BASE = "https://project2-air7.onrender.com/api";
   function toggleFAQ(index) {
     const answer = document.getElementById(`faq-answer-${index}`);
     const icon = document.getElementById(`faq-icon-${index}`);
-    if (!answer || !icon) return;
-
-    if (answer.classList.contains('show')) {
-      answer.classList.remove('show');
-      icon.textContent = '+';
-    } else {
-      faqs.forEach((_, i) => {
-        const a = document.getElementById(`faq-answer-${i}`);
-        const ic = document.getElementById(`faq-icon-${i}`);
-        if (a) a.classList.remove('show');
-        if (ic) ic.textContent = '+';
-      });
-      answer.classList.add('show');
-      icon.textContent = '−';
+    if (answer && icon) {
+      answer.classList.toggle('show');
+      icon.textContent = answer.classList.contains('show') ? '-' : '+';
     }
   }
 
-  // ----------------- Registration Form -----------------
-  async function handleRegistration(event) {
+  // ----------------- Registration Modal -----------------
+  function showRegistrationModal() {
+    const registerSection = document.getElementById('register');
+    const registrationModal = document.getElementById('registrationModal');
+    const closeButton = document.getElementById('closeRegister');
+
+    if (registerSection && registrationModal && closeButton) {
+      registerSection.classList.remove('hidden');
+      registrationModal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden'; // Prevent scrolling
+    }
+  }
+
+  function hideRegistrationModal() {
+    const registerSection = document.getElementById('register');
+    const registrationModal = document.getElementById('registrationModal');
+    const closeButton = document.getElementById('closeRegister');
+
+    if (registerSection && registrationModal && closeButton) {
+      registerSection.classList.add('hidden');
+      registrationModal.classList.add('hidden');
+      document.body.style.overflow = 'auto'; // Allow scrolling
+    }
+  }
+
+  function handleRegistration(event) {
     event.preventDefault();
     const form = event.target;
     const formData = new FormData(form);
 
-    try {
-      const res = await fetch(`${API_BASE}/registrations`, { method: 'POST', body: formData });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Unknown error');
-      }
-      alert('Registration submitted successfully!');
-      hideRegistrationModal();
-      form.reset();
-    } catch (err) {
-      alert(`Failed to submit registration: ${err.message}`);
+    // Debug: Log form data
+    console.log('Form data being sent:');
+    for (let [key, value] of formData.entries()) {
+      console.log(key, value);
     }
+
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Registering...';
+    submitBtn.disabled = true;
+
+    console.log('Sending request to:', `${API_BASE}/registrations`);
+
+    fetch(`${API_BASE}/registrations`, {
+      method: 'POST',
+      body: formData, // Don't set Content-Type header, let browser set it for FormData
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
+    .then(data => {
+      // Reset form
+      form.reset();
+      
+      // Show success message
+      const successMessage = document.getElementById('registerMessage') || document.createElement('p');
+      successMessage.id = 'registerMessage';
+      successMessage.className = 'mt-4 text-green-400';
+      successMessage.textContent = data.message || 'Registration submitted successfully!';
+      successMessage.classList.remove('hidden');
+      
+      // Insert success message after form
+      if (!successMessage.parentNode) {
+        form.parentNode.insertBefore(successMessage, form.nextSibling);
+      }
+      
+      // Hide message after 5 seconds
+      setTimeout(() => {
+        successMessage.classList.add('hidden');
+      }, 5000);
+      
+      // Close modal
+      hideRegistrationModal();
+    })
+    .catch(error => {
+      console.error('Error registering:', error);
+      alert('Registration failed: ' + (error.message || 'Network error. Please try again.'));
+    })
+    .finally(() => {
+      // Reset button state
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+    });
   }
 
-  // ----------------- Partners -----------------
-  let currentIndex = 0;
-  async function populatePartners() {
-    const container = document.getElementById('partners-track');
-    if (!container) return;
-    container.innerHTML = '<p>Loading partners...</p>';
-
+  // ----------------- Hiring Partners Carousel -----------------
+  let partnerIndex = 0;
+  async function fetchPartners() {
     try {
       const res = await fetch(`${API_BASE}/partners`);
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-      const partners = await res.json();
-      if (!partners.length) throw new Error('No partners returned');
-      container.innerHTML = '';
-
-      partners.forEach(p => {
-        const box = document.createElement('div');
-        box.className = 'partner-box';
-        const img = document.createElement('img');
-        img.src = p.logo_path ? `/uploads/partners/${p.logo_path}` : 'https://via.placeholder.com/150x80';
-        img.alt = p.name || 'Partner';
-        img.className = 'partner-logo';
-        img.onerror = () => { img.src = 'https://via.placeholder.com/150x80'; };
-        box.appendChild(img);
-        container.appendChild(box);
-      });
-
-      setupPartnerCarousel(partners.length);
+      return await res.json();
     } catch (err) {
-      container.innerHTML = '<p class="text-gray-400">Partners coming soon</p>';
-      console.error(err);
+      console.error('Error fetching partners:', err);
+      return [];
     }
   }
 
-  function setupPartnerCarousel(partnerCount) {
+  async function populatePartners() {
     const track = document.getElementById('partners-track');
     if (!track) return;
-    const prevBtn = document.getElementById('prevPartner');
-    const nextBtn = document.getElementById('nextPartner');
 
-    const updateVisibleCount = () => Math.floor(track.parentElement.offsetWidth / 150);
-    let visibleCount = updateVisibleCount();
+    track.innerHTML = '';
 
-    window.addEventListener('resize', () => { visibleCount = updateVisibleCount(); updateCarouselPosition(); });
+    const partners = await fetchPartners();
+    partners.forEach(p => {
+      const box = document.createElement('div');
+      box.className = 'partner-box';
+      const img = document.createElement('img');
+      let src = p.logo_path || '';
+      try {
+        if (src && !/^https?:\/\//i.test(src)) {
+          // Ensure leading slash and build absolute URL using current origin
+          if (!src.startsWith('/')) src = `/${src}`;
+          src = `${window.location.origin}${src}`;
+        }
+      } catch {}
+      img.src = src || 'https://placehold.co/150x80?text=Logo';
+      img.alt = p.name || 'Partner';
+      img.className = 'partner-logo';
+      img.onerror = () => { console.warn('Partner logo failed to load:', img.alt, img.src); img.src = 'https://placehold.co/150x80?text=Logo'; };
+      box.appendChild(img);
+      track.appendChild(box);
+    });
 
-    prevBtn?.addEventListener('click', () => { if (currentIndex > 0) currentIndex--; updateCarouselPosition(); });
-    nextBtn?.addEventListener('click', () => { if (currentIndex < partnerCount - visibleCount) currentIndex++; updateCarouselPosition(); });
-
-    function updateCarouselPosition() {
-      const translateX = -(currentIndex * (150 + 24));
-      track.style.transform = `translateX(${translateX}px)`;
-      if (prevBtn) prevBtn.disabled = currentIndex === 0;
-      if (nextBtn) nextBtn.disabled = currentIndex >= partnerCount - visibleCount;
-    }
-
-    updateCarouselPosition();
+    // Add touch event listeners for partners carousel
+    addTouchListeners(track, 'partners');
+    updatePartnerCarousel();
   }
 
-  // ----------------- Scroll Animations -----------------
+  function updatePartnerCarousel() {
+    const track = document.getElementById('partners-track');
+    if (!track) return;
+
+    const itemWidth = 150; // Fixed width for partner boxes
+    const offset = -partnerIndex * itemWidth;
+    track.style.transform = `translateX(${offset}px)`;
+  }
+
+  function prevPartner() {
+    if (partnerIndex > 0) {
+      partnerIndex--;
+      updatePartnerCarousel();
+    }
+  }
+
+  function nextPartner() {
+    const track = document.getElementById('partners-track');
+    if (track) {
+      const itemWidth = 150;
+      const totalItems = track.children.length;
+      if (partnerIndex < totalItems - 1) {
+        partnerIndex++;
+        updatePartnerCarousel();
+      }
+    }
+  }
+
+  // ----------------- Scroll Animation -----------------
   function animateOnScroll() {
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('fade-in', 'visible'); });
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('fade-in', 'visible');
+        }
+      });
+    }, { threshold: 0.1 }); // 10% of the element is visible
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  }
+
+  // ----------------- Stagger Animation -----------------
+  function animateStaggerItems() {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, index) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            entry.target.classList.add('visible');
+          }, index * 150); // 150ms delay between each item
+        }
+      });
     }, { threshold: 0.1 });
 
-    document.querySelectorAll('section').forEach(section => observer.observe(section));
+    document.querySelectorAll('.stagger-item').forEach(el => observer.observe(el));
   }
 
-  // ----------------- Modals -----------------
-  function showRegistrationModal() {
-    const modal = document.getElementById('registrationModal');
-    modal?.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+  // ----------------- Touch Interaction Functions -----------------
+  function addTouchListeners(track, carouselType) {
+    if (!track) return;
+
+    // Touch events
+    track.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
+      isDragging = true;
+      track.style.transition = 'none';
+    }, { passive: true });
+
+    track.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      touchEndX = e.touches[0].clientX;
+      const diff = touchStartX - touchEndX;
+      
+      if (carouselType === 'success-stories') {
+        const currentTransform = -currentStoryIndex * 100;
+        track.style.transform = `translateX(${currentTransform + (diff / 10)}%)`;
+      } else if (carouselType === 'partners') {
+        const itemWidth = 150;
+        const currentTransform = -partnerIndex * itemWidth;
+        track.style.transform = `translateX(${currentTransform + diff}px)`;
+      }
+    }, { passive: true });
+
+    track.addEventListener('touchend', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      track.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+      
+      const diff = touchStartX - touchEndX;
+      const threshold = 50;
+
+      if (carouselType === 'success-stories') {
+        if (Math.abs(diff) > threshold) {
+          if (diff > 0) {
+            nextStory();
+          } else {
+            prevStory();
+          }
+        } else {
+          updateCarousel();
+        }
+      } else if (carouselType === 'partners') {
+        if (Math.abs(diff) > threshold) {
+          if (diff > 0) {
+            nextPartner();
+          } else {
+            prevPartner();
+          }
+        } else {
+          updatePartnerCarousel();
+        }
+      }
+    }, { passive: true });
+
+    // Mouse events for desktop
+    track.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      dragStartX = e.clientX;
+      track.style.transition = 'none';
+      track.style.cursor = 'grabbing';
+      e.preventDefault();
+    });
+
+    track.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      dragCurrentX = e.clientX;
+      const diff = dragStartX - dragCurrentX;
+      
+      if (carouselType === 'success-stories') {
+        const currentTransform = -currentStoryIndex * 100;
+        track.style.transform = `translateX(${currentTransform + (diff / 10)}%)`;
+      } else if (carouselType === 'partners') {
+        const itemWidth = 150;
+        const currentTransform = -partnerIndex * itemWidth;
+        track.style.transform = `translateX(${currentTransform + diff}px)`;
+      }
+    });
+
+    track.addEventListener('mouseup', () => {
+      if (!isDragging) return;
+      isDragging = false;
+      track.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+      track.style.cursor = 'grab';
+      
+      const diff = dragStartX - dragCurrentX;
+      const threshold = 50;
+
+      if (carouselType === 'success-stories') {
+        if (Math.abs(diff) > threshold) {
+          if (diff > 0) {
+            nextStory();
+          } else {
+            prevStory();
+          }
+        } else {
+          updateCarousel();
+        }
+      } else if (carouselType === 'partners') {
+        if (Math.abs(diff) > threshold) {
+          if (diff > 0) {
+            nextPartner();
+          } else {
+            prevPartner();
+          }
+        } else {
+          updatePartnerCarousel();
+        }
+      }
+    });
+
+    track.addEventListener('mouseleave', () => {
+      if (isDragging) {
+        isDragging = false;
+        track.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+        track.style.cursor = 'grab';
+        
+        if (carouselType === 'success-stories') {
+          updateCarousel();
+        } else if (carouselType === 'partners') {
+          updatePartnerCarousel();
+        }
+      }
+    });
   }
-  function hideRegistrationModal() {
-    const modal = document.getElementById('registrationModal');
-    modal?.classList.add('hidden');
-    document.body.style.overflow = 'auto';
+
+  // ----------------- Smooth Scrolling -----------------
+  function scrollToCourses() {
+    const coursesSection = document.getElementById('learn');
+    if (coursesSection) {
+      coursesSection.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
   }
 
   // ----------------- Event Listeners -----------------
   function setupEventListeners() {
-    document.addEventListener('click', e => {
-      if (e.target === document.getElementById('registrationModal')) hideRegistrationModal();
-      if (e.target === document.getElementById('courseModal')) hideCourseModal();
-    });
-
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { hideRegistrationModal(); hideCourseModal(); } });
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', e => {
-        e.preventDefault();
-        const target = document.querySelector(anchor.getAttribute('href'));
-        target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      });
+    document.getElementById('prevPartner').addEventListener('click', prevPartner);
+    document.getElementById('nextPartner').addEventListener('click', nextPartner);
+    document.getElementById('closeRegister').addEventListener('click', hideRegistrationModal);
+    document.getElementById('registrationModal').addEventListener('click', (event) => {
+      if (event.target === event.currentTarget) {
+        hideRegistrationModal();
+      }
     });
   }
 
-  // ----------------- Expose Functions Globally -----------------
-  window.showRegistrationModal = showRegistrationModal;
-  window.hideRegistrationModal = hideRegistrationModal;
-  window.toggleFAQ = toggleFAQ;
-  window.handleRegistration = handleRegistration;
-  window.prevStory = prevStory;
-  window.nextStory = nextStory;
-  window.goToStory = goToStory;
-  window.showCourseModal = showCourseModal;
-  window.hideCourseModal = hideCourseModal;
-// Add this at the beginning of your initializePage() function
-console.log('Testing API connection to:', API_BASE);
-
-// Test the connection
-fetch(`${API_BASE}/health`)
-  .then(response => {
-    console.log('API health check status:', response.status);
-    return response.json();
-  })
-  .then(data => console.log('API health response:', data))
-  .catch(error => console.error('API health check failed:', error));
-
+  // ----------------- Main Execution -----------------
+  initializePage();
+  populatePartners(); // Populate partners on load
+  populateSuccessStories(); // Populate success stories on load
+  populateFAQs(); // Populate FAQs on load
+  setupEventListeners();
 </script>
 </body>
 </html>
