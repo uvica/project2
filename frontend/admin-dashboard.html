@@ -940,7 +940,8 @@ const API_BASE =  "https://talentconnects.onrender.com";
 
 async function debugCourses() {
   try {
-    const res = await fetch(`${API_BASE}/courses`, { cache: "no-cache" });
+    // ✅ Corrected endpoint with /api prefix
+    const res = await fetch(`${API_BASE}/api/courses`, { cache: "no-cache" });
     console.log("Fetch response object:", res);
 
     if (!res.ok) {
@@ -956,6 +957,7 @@ async function debugCourses() {
     console.error("Fetch failed:", err);
   }
 }
+
 
         // --- ADMIN LOGIN ---
         document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
@@ -1013,10 +1015,15 @@ async function debugCourses() {
         // --- SITE STATS ---
 async function loadSiteStats() {
   try {
-    const res = await fetch(`${API_BASE}/site_stats`); // match your backend route
+    const res = await fetch(`${API_BASE}/api/site_stats`); // added /api
     if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
     const data = await res.json();
     console.log(data);
+  } catch (err) {
+    console.error("Error loading site stats:", err);
+  }
+}
+
         // Update ALL form fields including the ones you added
         const fieldMappings = {
             'program_duration': data.program_duration || '3 Months',
@@ -1067,7 +1074,8 @@ document.getElementById('siteStatsForm').addEventListener('submit', async functi
     console.log('Submitting data:', data); // Debug log
 
     try {
-        const res = await fetch(`${API_BASE}/site_stats`, {
+          const res = await fetch(`${API_BASE}/api/site_stats`, { // ✅ fixed: added /api
+
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json' 
@@ -1094,7 +1102,7 @@ document.getElementById('siteStatsForm').addEventListener('submit', async functi
 async function loadCourses() {
     try {
         console.log('Loading courses...');
-        const res = await fetch(`${API_BASE}/courses`);
+        const res = await fetch(`${API_BASE}/api/courses`);
         if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
         
         const courses = await res.json();
@@ -1115,7 +1123,8 @@ async function loadCourses() {
 async function loadPartners() {
     try {
         console.log('Loading partners...');
-        const res = await fetch(`${API_BASE}/partners`);
+        const res = await fetch(`${API_BASE}/api/partners`);
+
         if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
         
         const partners = await res.json();
@@ -1135,7 +1144,8 @@ async function loadPartners() {
 async function loadStories() {
     try {
         console.log('Loading stories...');
-        const res = await fetch(`${API_BASE}/stories`);
+        const res = await fetch(`${API_BASE}/api/success_stories`);
+
         if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
         
         const stories = await res.json();
@@ -1187,7 +1197,9 @@ async function loadStories() {
                 features: document.getElementById('courseFeatures').value || null
             };
             try {
-                const response = await fetch(id ? `${API_BASE}/courses/${id}` : `${API_BASE}/courses`, {
+               const response = await fetch(
+  id ? `${API_BASE}/api/courses/${id}` : `${API_BASE}/api/courses`,
+  {
                     method: id ? 'PUT' : 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(courseData)
@@ -1237,7 +1249,8 @@ async function loadStories() {
         async function deleteCourse(id) {
             if (confirm('Delete this course?')) {
                 try {
-                    const response = await fetch(`${API_BASE}/courses/${id}`, { method: 'DELETE' });
+                    const response = await fetch(`${API_BASE}/api/courses/${id}`, { method: 'DELETE' });
+
                     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                     loadCourses();
                 } catch(err) { 
@@ -1251,7 +1264,8 @@ async function loadStories() {
         async function loadPartners() {
             try {
                 console.log('Loading partners...');
-                const res = await fetch(`${API_BASE}/partners`);
+                const res = await fetch(`${API_BASE}/api/partners`);
+
                 if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
                 const partners = await res.json();
                 renderPartners(partners);
@@ -1302,7 +1316,9 @@ async function loadStories() {
             logo: formData.get('logo').name
         });
 
-        const response = await fetch(`${API_BASE}/partners`, {
+const response = await fetch(`${API_BASE}/api/partners`, { 
+  // options here
+
             method: 'POST',
             body: formData
         });
@@ -1355,7 +1371,8 @@ async function loadStories() {
         async function deletePartner(id) {
             if (confirm('Delete this partner?')) {
                 try {
-                    const response = await fetch(`${API_BASE}/partners/${id}`, { method: 'DELETE' });
+                    const response = await fetch(`${API_BASE}/api/partners/${id}`, { method: 'DELETE' });
+
                     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                     loadPartners();
                 } catch(err) { 
@@ -1368,8 +1385,9 @@ async function loadStories() {
         // --- SUCCESS STORIES ---
         async function loadStories() {
             try {
-                const res = await fetch(`${API_BASE}/stories`);
-                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                const res = await fetch(`${API_BASE}/api/success_stories`);
+
+\                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
                 const stories = await res.json();
                 renderStories(stories);
                 document.getElementById('totalStories').innerText = stories.length;
@@ -1411,8 +1429,11 @@ async function loadStories() {
             const imageFile = document.getElementById('storyImageFile').files[0];
             if (imageFile) formData.append('image', imageFile);
             try {
-                const response = await fetch(id ? `${API_BASE}/stories/${id}` : `${API_BASE}/stories`, {
-                    method: id ? 'PUT' : 'POST',
+                const response = await fetch(
+  id ? `${API_BASE}/api/success_stories/${id}` : `${API_BASE}/api/success_stories`,
+  {
+    // options...
+                  method: id ? 'PUT' : 'POST',
                     body: formData
                 });
                 if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -1464,7 +1485,10 @@ async function loadStories() {
         async function deleteStory(id) {
             if (confirm('Delete this story?')) {
                 try {
-                    const response = await fetch(`${API_BASE}/stories/${id}`, { method: 'DELETE' });
+                    const response = await fetch(`${API_BASE}/api/success_stories/${id}`, {
+  method: 'DELETE'
+});
+
                     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                     loadStories();
                 } catch(err) { 
@@ -1494,7 +1518,8 @@ async function loadStories() {
 
         async function fetchUsers() {
             try {
-                const res = await fetch(`${API_BASE}/users`);
+                const res = await fetch(`${API_BASE}/api/users`);
+
                 if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
                 const users = await res.json();
                 renderUsers(users);

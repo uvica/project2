@@ -1197,7 +1197,7 @@
 
         <script>
   // ----------------- API Configuration -----------------
-const API_BASE =  "https://talentconnects.onrender.com/";
+const API_BASE =  "https://talentconnects.onrender.com";
 
   // ----------------- FAQ Data -----------------
   const faqs = [
@@ -1274,12 +1274,13 @@ const API_BASE =  "https://talentconnects.onrender.com/";
 
   // ----------------- Load Site Stats -----------------
   async function loadSiteStats() {
-    try {
-      console.log('Fetching site stats from:', `${API_BASE}/site_stats`);
-      const res = await fetch(`${API_BASE}/site_stats?t=${new Date().getTime()}`, {
-        cache: 'no-cache',
-        headers: { 'Content-Type': 'application/json' }
-      });
+  try {
+    console.log('Fetching site stats from:', `${API_BASE}/api/site_stats`);
+    const res = await fetch(`${API_BASE}/api/site_stats?t=${new Date().getTime()}`, {
+      cache: 'no-cache',
+      headers: { 'Content-Type': 'application/json' }
+    });
+
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
       const data = await res.json();
       console.log('Site stats API Response:', JSON.stringify(data, null, 2));
@@ -1338,7 +1339,8 @@ const API_BASE =  "https://talentconnects.onrender.com/";
 
     coursesGrid.innerHTML = '<p>Loading courses...</p>';
     try {
-      const response = await fetch(`${API_BASE}/courses`);
+        const response = await fetch(`${API_BASE}/api/courses`);
+
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const courses = await response.json();
 
@@ -1422,7 +1424,8 @@ const API_BASE =  "https://talentconnects.onrender.com/";
   let currentStoryIndex = 0;
   async function fetchSuccessStories() {
     try {
-      const res = await fetch(`${API_BASE}/stories`);
+        const res = await fetch(`${API_BASE}/api/success_stories`);
+
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
       return await res.json();
     } catch (err) {
@@ -1576,7 +1579,8 @@ const API_BASE =  "https://talentconnects.onrender.com/";
 
     console.log('Sending request to:', `${API_BASE}/registrations`);
 
-    fetch(`${API_BASE}/registrations`, {
+    fetch(`${API_BASE}/api/registrations`, { 
+
       method: 'POST',
       body: formData, // Don't set Content-Type header, let browser set it for FormData
     })
@@ -1625,7 +1629,8 @@ const API_BASE =  "https://talentconnects.onrender.com/";
   let partnerIndex = 0;
   async function fetchPartners() {
     try {
-      const res = await fetch(`${API_BASE}/partners`);
+        const res = await fetch(`${API_BASE}/api/partners`);
+
       if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
       return await res.json();
     } catch (err) {
