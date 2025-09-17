@@ -21,11 +21,9 @@ const allowedOrigins = new Set([
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    const o = origin.replace(/\/$/, "");
-    if (allowedOrigins.has(o)) return callback(null, true);
-    if (/^http:\/\/\d+\.\d+\.\d+\.\d+:(3000|5000)$/.test(o)) return callback(null, true);
-    return callback(new Error("Not allowed by CORS"));
+    if (!origin) return callback(null, true); // allow server-to-server or Postman
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error(`CORS error: ${origin} not allowed`));
   },
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
