@@ -21,14 +21,14 @@ const allowedOrigins = new Set([
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow server-to-server or Postman
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    callback(new Error(`CORS error: ${origin} not allowed`));
+    if (!origin) return callback(null, true);
+    const o = origin.replace(/\/$/, "");
+    if (allowedOrigins.has(o)) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
   },
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET","POST","PUT","DELETE"],
   credentials: true
 }));
-
 // ----------------- Middleware -----------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
