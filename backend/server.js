@@ -4,7 +4,6 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import mysql from "mysql2/promise";
-import multer from "multer";
 
 dotenv.config();
 const app = express();
@@ -13,48 +12,35 @@ const PORT = process.env.PORT || 5000;
 // ----------------- CORS Setup -----------------
 const allowedOrigins = new Set([
   process.env.FRONTEND_URL,
-  `http://localhost:${PORT}`,
-  `http://127.0.0.1:${PORT}`,
   "http://localhost:3000",
-  "http://127.0.0.1:3000"
+  "http://127.0.0.1:3000",
 ].filter(Boolean));
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow non-browser requests like Postman
-    const o = origin.replace(/\/$/, "");
-    if (allowedOrigins.has(o)) return callback(null, true);
+    if (!origin) return callback(null, true); // allow Postman, etc.
+    if (allowedOrigins.has(origin.replace(/\/$/, ""))) return callback(null, true);
     return callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET","POST","PUT","DELETE"],
   credentials: true
 }));
 
-
 // ----------------- Middleware -----------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('uploads'));
 
-// Ensure uploads directory exists
-const uploadsDir = path.join(process.cwd(), 'uploads', 'partners');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
 // ----------------- Database Connection -----------------
 let sslConfig;
 try {
-  const requireSsl = String(process.env.DB_REQUIRE_SSL || "").toLowerCase() === "true";
-  const caPath = process.env.DB_CA || "./certs/tidb-ca.pem";
-  if (requireSsl) {
+  if (String(process.env.DB_REQUIRE_SSL || "").toLowerCase() === "true") {
+    const caPath = process.env.DB_CA || "./certs/tidb-ca.pem";
     sslConfig = { rejectUnauthorized: true };
     if (fs.existsSync(caPath)) sslConfig.ca = fs.readFileSync(caPath);
-  } else if (fs.existsSync(caPath)) {
-    sslConfig = { rejectUnauthorized: true, ca: fs.readFileSync(caPath) };
   }
 } catch (err) {
-  console.warn("Failed to configure DB SSL. Proceeding without SSL.", err);
+  console.warn("DB SSL config failed, proceeding without SSL", err);
 }
 
 const db = mysql.createPool({
@@ -67,13 +53,8 @@ const db = mysql.createPool({
 });
 
 db.getConnection()
-  .then(conn => {
-    console.log("✅ DB Connected!");
-    conn.release();
-  })
-  .catch(err => {
-    console.error("❌ DB Connection Error:", err.message);
-  });
+  .then(conn => { console.log("✅ DB Connected"); conn.release(); })
+  .catch(err => { console.error("❌ DB Connection Error:", err.message); });
 
 // ----------------- Routes -----------------
 import coursesRouter from "./routes/courses.js";
@@ -89,37 +70,29 @@ app.use("/api/courses", coursesRouter);
 app.use("/api/faqs", faqsRouter);
 app.use("/api/partners", partnersRouter);
 app.use("/api/success_stories", successStoriesRouter);
-app.use("/api/stories", successStoriesRouter); // Alias
 app.use("/api/site_stats", siteStatsRouter);
 app.use("/api/registrations", registrationsRouter);
 app.use("/api/admins", adminsRouter);
 app.use("/api/users", usersRouter);
 
 // ----------------- Test / Health -----------------
-app.get("/api", (req, res) => res.json({ message: "Backend is running!" }));
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
 // ----------------- Serve Frontend -----------------
 const frontendPath = path.resolve("..", "frontend");
 app.use(express.static(frontendPath));
-app.get("*", (req, res) => {
+
+// Only serve index.html for non-API GET requests
+app.get(/^\/(?!api).*/, (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 
-// ----------------- Error Handler -----------------
+// ----------------- Central Error Handler -----------------
 app.use((err, req, res, next) => {
-  console.error('Server error:', {
-    message: err.message,
-    stack: err.stack,
-    path: req.path,
-    body: req.body,
-    file: req.file
-  });
-
-  // Send JSON response always
+  console.error("Server Error:", err.message, req.path);
   res.status(500).json({
-    error: err.message || 'Internal server error',
-    details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    error: err.message || "Internal server error",
+    stack: process.env.NODE_ENV === "development" ? err.stack : undefined
   });
 });
 
