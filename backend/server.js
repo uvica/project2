@@ -1,11 +1,10 @@
-// server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import mysql from "mysql2/promise";
-import multer from 'multer';
+import multer from "multer";
 
 dotenv.config();
 const app = express();
@@ -16,17 +15,17 @@ const allowedOrigins = new Set([
   process.env.FRONTEND_URL,
   `http://localhost:${PORT}`,
   `http://127.0.0.1:${PORT}`,
-  'http://localhost:3000',
-  'http://127.0.0.1:3000'
+  "http://localhost:3000",
+  "http://127.0.0.1:3000"
 ].filter(Boolean));
 
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-    const o = origin.replace(/\/$/, '');
+    const o = origin.replace(/\/$/, "");
     if (allowedOrigins.has(o)) return callback(null, true);
     if (/^http:\/\/\d+\.\d+\.\d+\.\d+:(3000|5000)$/.test(o)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
+    return callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
@@ -37,14 +36,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static('uploads'));
 
-// Add error handling middleware before routes
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  if (err instanceof multer.MulterError) {
-    return res.status(400).json({ error: 'File upload error: ' + err.message });
-  }
-  next(err);
-});
+// Ensure uploads directory exists
+const uploadsDir = path.join(process.cwd(), 'uploads', 'partners');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // ----------------- Database Connection -----------------
 let sslConfig;
@@ -93,31 +89,40 @@ app.use("/api/courses", coursesRouter);
 app.use("/api/faqs", faqsRouter);
 app.use("/api/partners", partnersRouter);
 app.use("/api/success_stories", successStoriesRouter);
-// Alias to match frontend expectation
-app.use("/api/stories", successStoriesRouter);
+app.use("/api/stories", successStoriesRouter); // Alias
 app.use("/api/site_stats", siteStatsRouter);
 app.use("/api/registrations", registrationsRouter);
 app.use("/api/admins", adminsRouter);
 app.use("/api/users", usersRouter);
 
-// Optional test API
-app.get("/api", (req, res) => {
-  res.json({ message: "Backend is running!" });
-});
-
-// Health check for frontend probe
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
-});
+// ----------------- Test / Health -----------------
+app.get("/api", (req, res) => res.json({ message: "Backend is running!" }));
+app.get("/api/health", (req, res) => res.json({ status: "ok" }));
 
 // ----------------- Serve Frontend -----------------
-// Resolve to the project-level `frontend` folder when running from `backend/`
-const frontendPath = path.resolve('..', 'frontend');
+const frontendPath = path.resolve("..", "frontend");
 app.use(express.static(frontendPath));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(frontendPath, 'index.html'));
+// ----------------- Error Handler -----------------
+app.use((err, req, res, next) => {
+  console.error('Server error:', {
+    message: err.message,
+    stack: err.stack,
+    path: req.path,
+    body: req.body,
+    file: req.file
+  });
+
+  // Send JSON response always
+  res.status(500).json({
+    error: err.message || 'Internal server error',
+    details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
 });
 
 // ----------------- Start Server -----------------
+app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
 app.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));

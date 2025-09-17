@@ -18,6 +18,13 @@ export const createUploader = (folder) => {
   const hasCloudinaryCreds = Boolean(process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET);
   const useCloudinary = explicitlyEnabled && hasCloudinaryCreds;
 
+  console.log('Cloudinary configuration:', {
+    enabled: explicitlyEnabled,
+    hasCredentials: hasCloudinaryCreds,
+    useCloudinary,
+    folder
+  });
+
   if (useCloudinary) {
     const storage = new CloudinaryStorage({
       cloudinary,
@@ -25,15 +32,14 @@ export const createUploader = (folder) => {
         folder,
         allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
         transformation: [{ quality: 'auto' }],
-        public_id: (req, file) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-          return `${folder}/${uniqueSuffix}`;
-        }
+        format: 'webp',
+        resource_type: 'auto'
       }
     });
-    return multer({ 
+
+    return multer({
       storage,
-      limits: { fileSize: 5 * 1024 * 1024 } // 5MB limit
+      limits: { fileSize: 5 * 1024 * 1024 }
     });
   }
 

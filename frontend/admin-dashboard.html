@@ -1250,6 +1250,7 @@ async function loadStories() {
         // --- PARTNERS ---
         async function loadPartners() {
             try {
+                console.log('Loading partners...');
                 const res = await fetch(`${API_BASE}/partners`);
                 if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
                 const partners = await res.json();
@@ -1280,22 +1281,50 @@ async function loadStories() {
         }
 
         document.getElementById('partnerForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const id = document.getElementById('partnerIndex').value;
-            const formData = new FormData(this);
-            try {
-                const response = await fetch(id ? `${API_BASE}/partners/${id}` : `${API_BASE}/partners`, {
-                    method: id ? 'PUT' : 'POST',
-                    body: formData
-                });
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                closePartnerModal();
-                loadPartners();
-            } catch (err) {
-                console.error('Error saving partner:', err);
-                alert(`Failed to save partner: ${err.message}`);
-            }
+    e.preventDefault();
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+
+    try {
+        const formData = new FormData();
+        
+        const name = document.getElementById('partnerAlt').value;
+        const logoFile = document.getElementById('partnerSrc').files[0];
+        
+        if (!name) throw new Error('Partner name is required');
+        if (!logoFile) throw new Error('Logo file is required');
+
+        formData.append('name', name);
+        formData.append('logo', logoFile);
+
+        console.log('Submitting partner:', {
+            name: formData.get('name'),
+            logo: formData.get('logo').name
         });
+
+        const response = await fetch(`${API_BASE}/partners`, {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || data.details || 'Failed to create partner');
+        }
+
+        alert('Partner added successfully!');
+        this.reset();
+        closePartnerModal();
+        loadPartners();
+
+    } catch (err) {
+        console.error('Partner creation error:', err);
+        alert(err.message || 'Failed to create partner');
+    } finally {
+        submitBtn.disabled = false;
+    }
+});
 
         function renderPartners(partners) {
     const container = document.getElementById('partnerList');
