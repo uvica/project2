@@ -1048,20 +1048,21 @@ async function loadSiteStats() {
             'internship_stipend': data.internship_stipend || '₹15K-₹35K'
         };
 
-        // Update all form fields
-        for (const [fieldId, value] of Object.entries(fieldMappings)) {
-            const element = document.getElementById(fieldId);
-            if (element) {
-                element.value = value;
-            } else {
-                console.warn(`Element with ID ${fieldId} not found`);
-            }
+    try {
+    // Update all form fields
+    for (const [fieldId, value] of Object.entries(fieldMappings)) {
+        const element = document.getElementById(fieldId);
+        if (element) {
+            element.value = value;
+        } else {
+            console.warn(`Element with ID ${fieldId} not found`);
         }
-    } catch (err) {
-        console.error('Error loading site stats:', err);
-        alert(`Failed to load site stats: ${err.message}. Check console for details.`);
     }
+} catch (err) {
+    console.error('Error loading site stats:', err);
+    alert(`Failed to load site stats: ${err.message}. Check console for details.`);
 }
+
 
 // FIXED FORM SUBMISSION HANDLER
 document.getElementById('siteStatsForm').addEventListener('submit', async function(e) {
@@ -1387,7 +1388,7 @@ const response = await fetch(`${API_BASE}/api/partners`, {
             try {
                 const res = await fetch(`${API_BASE}/api/success_stories`);
 
-\                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+             if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
                 const stories = await res.json();
                 renderStories(stories);
                 document.getElementById('totalStories').innerText = stories.length;
