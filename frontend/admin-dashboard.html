@@ -607,6 +607,10 @@
                     <i class="fas fa-users mr-3 text-gray-400 group-hover:text-white transition-colors"></i>
                     <span>Registered Users</span>
                 </div>
+                <div class="sidebar-item group" onclick="showTab('consultations', event)">
+                    <i class="fas fa-calendar-check mr-3 text-gray-400 group-hover:text-white transition-colors"></i>
+                    <span>Expert Meetings</span>
+                </div>
                 <div class="mt-8 pt-4 border-t border-gray-700">
                     <div class="sidebar-item group text-red-400 hover:bg-red-500/10" onclick="logout()">
                         <i class="fas fa-sign-out-alt mr-3"></i>
@@ -951,6 +955,44 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Expert Meetings Tab -->
+            <div id="consultations" class="tab-content">
+                <div class="card">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                                <i class="fas fa-calendar-check text-white"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-bold text-white">Expert Meetings</h2>
+                                <p class="text-gray-400">View and manage consultation bookings</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="text-right">
+                                <p class="text-sm text-gray-500">Total Bookings</p>
+                                <p class="text-lg font-bold text-purple-400" id="totalConsultations">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Meeting Date</th>
+                                <th>Time Slot</th>
+                                <th>Status</th>
+                                <th>Booked On</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="consultationList"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1158,6 +1200,7 @@ async function debugCourses() {
             if (tab === 'partners') loadPartners();
             if (tab === 'stories') loadStories();
             if (tab === 'siteStats') loadSiteStats();
+            if (tab === 'consultations') loadConsultations();
         }
 
         // --- LOAD DATA ---
@@ -1167,6 +1210,7 @@ async function debugCourses() {
             await loadPartners();
             await loadStories();
             await loadSiteStats();
+            await loadConsultations();
         }
 
 
@@ -1854,6 +1898,98 @@ partners.forEach(p => {
                 
                 container.appendChild(row);
             });
+        }
+
+        // --- CONSULTATIONS ---
+        async function loadConsultations() {
+            try {
+                console.log('Loading consultations...');
+                const res = await fetch(`${API_BASE}/api/consultations`);
+                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+                
+                const consultations = await res.json();
+                console.log('Consultations loaded:', consultations.length);
+                
+                renderConsultations(consultations);
+                document.getElementById('totalConsultations').innerText = consultations.length;
+            } catch(err) {
+                console.error('Error loading consultations:', err);
+                const container = document.getElementById('consultationList');
+                if (container) {
+                    container.innerHTML = '<tr><td colspan="8" class="text-red-400">Error loading consultations</td></tr>';
+                }
+            }
+        }
+
+        function renderConsultations(consultations) {
+            const container = document.getElementById('consultationList');
+            container.innerHTML = '';
+            
+            if (consultations.length === 0) {
+                container.innerHTML = '<tr><td colspan="8" class="text-gray-400 text-center py-8">No consultation bookings yet</td></tr>';
+                return;
+            }
+            
+            consultations.forEach(consultation => {
+                const row = document.createElement('tr');
+                const meetingDate = new Date(consultation.meeting_date).toLocaleDateString();
+                const bookedDate = new Date(consultation.created_at).toLocaleDateString();
+                
+                // Status badge styling
+                const statusColors = {
+                    'pending': 'bg-yellow-600/20 text-yellow-400 border-yellow-600/30',
+                    'confirmed': 'bg-green-600/20 text-green-400 border-green-600/30',
+                    'completed': 'bg-blue-600/20 text-blue-400 border-blue-600/30',
+                    'cancelled': 'bg-red-600/20 text-red-400 border-red-600/30'
+                };
+                
+                row.innerHTML = `
+                    <td>${consultation.full_name}</td>
+                    <td>${consultation.email}</td>
+                    <td>${consultation.phone}</td>
+                    <td>${meetingDate}</td>
+                    <td>${consultation.meeting_time}</td>
+                    <td>
+                        <span class="px-2 py-1 rounded-full text-xs border ${statusColors[consultation.status] || statusColors.pending}">
+                            ${consultation.status.charAt(0).toUpperCase() + consultation.status.slice(1)}
+                        </span>
+                    </td>
+                    <td>${bookedDate}</td>
+                    <td>
+                        <select onchange="updateConsultationStatus(${consultation.id}, this.value)" class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white">
+                            <option value="pending" ${consultation.status === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="confirmed" ${consultation.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                            <option value="completed" ${consultation.status === 'completed' ? 'selected' : ''}>Completed</option>
+                            <option value="cancelled" ${consultation.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                        </select>
+                    </td>
+                `;
+                
+                container.appendChild(row);
+            });
+        }
+
+        async function updateConsultationStatus(consultationId, newStatus) {
+            try {
+                const response = await fetch(`${API_BASE}/api/consultations/${consultationId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                
+                if (response.ok) {
+                    showNotification(`Consultation status updated to ${newStatus}`, 'success');
+                    loadConsultations(); // Reload to reflect changes
+                } else {
+                    throw new Error('Failed to update status');
+                }
+            } catch (error) {
+                console.error('Error updating consultation status:', error);
+                showNotification('Failed to update consultation status', 'error');
+                loadConsultations(); // Reload to reset the dropdown
+            }
         }
 
         // --- UPDATE LAST UPDATED TIME ---
