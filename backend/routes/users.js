@@ -42,41 +42,34 @@ router.get('/:id', async (req, res) => {
 });
 
 // ---------------------- Download CV ----------------------
+// Download CV by user ID
 router.get('/cv/:id', async (req, res) => {
   try {
     const [rows] = await db.query(
-      'SELECT full_name, cv_name, cv FROM registrations WHERE id=?',
+      'SELECT full_name, cv, cv_name FROM registrations WHERE id = ?',
       [req.params.id]
     );
-    if (!rows.length) return res.status(404).json({ error: 'User not found' });
 
-    const { full_name, cv_name, cv } = rows[0];
+    if (rows.length === 0) return res.status(404).json({ error: 'User not found' });
 
-    if (!cv && !cv_name) return res.status(404).json({ error: 'CV not found' });
+    const { full_name, cv, cv_name } = rows[0];
+    if (!cv) return res.status(404).json({ error: 'CV not found' });
 
-    // Cloudinary CV → redirect
-    if (cv_name && cv_name.startsWith('http')) {
-      return res.redirect(cv_name);
+    // If Cloudinary URL, redirect
+    if (cv.startsWith('http')) {
+      return res.redirect(cv);
     }
 
-    // Local buffer → send as download
-    const ext = cv_name ? cv_name.substring(cv_name.lastIndexOf('.')) : '.pdf';
-    const mimeType = {
-      '.pdf': 'application/pdf',
-      '.doc': 'application/msword',
-      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      '.txt': 'text/plain'
-    }[ext.toLowerCase()] || 'application/octet-stream';
+    // Local file download
+    const filePath = path.resolve(cv);
+    if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'CV file missing' });
 
-    const safeName = (full_name || 'cv').replace(/[^a-zA-Z0-9.-]/g, '_') + ext;
-
-    res.setHeader('Content-Disposition', `attachment; filename="${safeName}"`);
-    res.setHeader('Content-Type', mimeType);
-    res.end(cv);
+    res.download(filePath, cv_name || `${full_name}_CV`);
   } catch (err) {
-    console.error('CV download error:', err);
+    console.error('Error downloading CV:', err);
     res.status(500).json({ error: 'Failed to download CV' });
   }
 });
+
 
 export default router;
