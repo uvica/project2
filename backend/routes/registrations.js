@@ -18,12 +18,43 @@ cloudinary.config({
 
 const upload = multer({ storage: multer.memoryStorage() }); // Memory storage for Cloudinary
 
+// Allowed file types for CV uploads
+const ALLOWED_CV_TYPES = {
+  'application/pdf': '.pdf',
+  'application/msword': '.doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+  'text/plain': '.txt',
+  'application/rtf': '.rtf'
+};
+
+const ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.txt', '.rtf'];
+
 // POST /api/registrations - Register a new user
 router.post('/', upload.single('cv'), async (req, res) => {
   const { fullName, email, phone, role } = req.body;
 
   if (!fullName || !email || !req.file) {
     return res.status(400).json({ error: 'Full name, email, and CV are required' });
+  }
+
+  // Validate file type
+  const fileExtension = req.file.originalname.toLowerCase().match(/\.[^.]*$/)?.[0];
+  const mimeType = req.file.mimetype;
+  
+  if (!ALLOWED_CV_TYPES[mimeType] && !ALLOWED_EXTENSIONS.includes(fileExtension)) {
+    return res.status(400).json({ 
+      error: 'Invalid file format. Please upload a CV in one of these formats: PDF, DOC, DOCX, TXT, or RTF',
+      allowedFormats: ['PDF', 'DOC', 'DOCX', 'TXT', 'RTF']
+    });
+  }
+
+  // Validate file size (max 10MB)
+  const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+  if (req.file.size > maxSize) {
+    return res.status(400).json({ 
+      error: 'File size too large. Please upload a CV smaller than 10MB',
+      maxSize: '10MB'
+    });
   }
 
   try {
@@ -41,7 +72,8 @@ router.post('/', upload.single('cv'), async (req, res) => {
     });
 
     const cv_url = result.secure_url;
-    const cv_filename = req.file.originalname;
+    // Sanitize filename - remove problematic characters
+    const cv_filename = req.file.originalname.replace(/[()[\]{}]/g, '').replace(/\s+/g, '_');
     const cv_mimetype = req.file.mimetype;
 
     // Insert user into DB
@@ -80,9 +112,27 @@ router.get('/:id/cv', async (req, res) => {
     
     const buffer = await response.arrayBuffer();
     
-    // Use stored metadata instead of guessing
-    const contentType = cv_mimetype || 'application/octet-stream';
-    const filename = cv_filename || `${full_name.replace(/[^a-zA-Z0-9.-]/g, '_')}_CV.pdf`;
+    // Use stored metadata with fallbacks
+    let contentType = cv_mimetype || 'application/octet-stream';
+    
+    // If no stored MIME type, try to determine from filename extension
+    if (!cv_mimetype && cv_filename) {
+      const ext = cv_filename.toLowerCase().match(/\.[^.]*$/)?.[0];
+      const mimeTypes = {
+        '.pdf': 'application/pdf',
+        '.doc': 'application/msword',
+        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        '.txt': 'text/plain',
+        '.rtf': 'application/rtf'
+      };
+      contentType = mimeTypes[ext] || contentType;
+    }
+    
+    // Ensure filename is safe for download
+    const safeFilename = cv_filename 
+      ? cv_filename.replace(/[^a-zA-Z0-9._-]/g, '_')
+      : `${full_name.replace(/[^a-zA-Z0-9.-]/g, '_')}_CV.pdf`;
+    const filename = safeFilename;
     
     res.set({
       'Content-Type': contentType,

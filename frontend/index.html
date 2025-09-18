@@ -1138,7 +1138,8 @@
                     </div>
                     <div>
                         <label class="block text-sm font-medium mb-2 text-white">Upload CV</label>
-                        <input type="file" name="cv" accept=".pdf,.doc,.docx" required class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" />
+                        <input type="file" name="cv" accept=".pdf,.doc,.docx,.txt,.rtf" required class="w-full p-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" />
+                        <p class="text-xs text-gray-400 mt-1">Supported formats: PDF, DOC, DOCX, TXT, RTF (Max 10MB)</p>
                     </div>
                     <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg font-semibold transition-colors w-full">Submit Registration</button>
                 </form>
@@ -1179,7 +1180,8 @@
                     </div>
                     <div>
                         <label>Upload CV</label>
-                        <input type="file" name="cv" accept=".pdf,.doc,.docx" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg" />
+                        <input type="file" name="cv" accept=".pdf,.doc,.docx,.txt,.rtf" required class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg" />
+                        <p class="text-xs text-gray-400 mt-1">Supported formats: PDF, DOC, DOCX, TXT, RTF (Max 10MB)</p>
                     </div>
                     <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded-lg font-semibold">Submit Registration</button>
                 </form>
@@ -1593,7 +1595,11 @@ function handleRegistration(event) {
       body: formData, // Don't set Content-Type header, let browser set it
     })
     .then(response => {
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      if (!response.ok) {
+        return response.json().then(errorData => {
+          throw new Error(errorData.error || `HTTP error! Status: ${response.status}`);
+        });
+      }
       return response.json();
     })
     .then(data => {
