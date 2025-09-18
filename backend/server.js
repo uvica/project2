@@ -122,6 +122,7 @@ import siteStatsRouter from "./routes/site_stats.js";
 import registrationsRouter from "./routes/registrations.js";
 import adminsRouter from "./routes/admins.js";
 import usersRouter from "./routes/users.js";
+import consultationsRouter from "./routes/consultations.js";
 
 app.use("/api/courses", coursesRouter);
 app.use("/api/faqs", faqsRouter);
@@ -131,6 +132,7 @@ app.use("/api/site_stats", siteStatsRouter);
 app.use("/api/registrations", registrationsRouter);
 app.use("/api/admins", adminsRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/consultations", consultationsRouter);
 
 // ----------------- Test / Health -----------------
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
