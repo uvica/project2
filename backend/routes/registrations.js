@@ -54,6 +54,27 @@ router.post('/', upload.single('cv'), async (req, res) => {
   }
 });
 
+// GET /api/registrations/:id/cv - Redirect to the user's CV URL
+router.get('/:id/cv', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const [rows] = await db.query(
+      'SELECT cv_url FROM users WHERE id = ?',
+      [userId]
+    );
+
+    if (!rows.length || !rows[0].cv_url) {
+      return res.status(404).json({ error: 'CV not found' });
+    }
+
+    // Redirect to the Cloudinary (or external) URL so the browser handles the file type correctly
+    return res.redirect(302, rows[0].cv_url);
+  } catch (err) {
+    console.error('Error redirecting to CV URL:', err);
+    res.status(500).json({ error: 'Failed to retrieve CV' });
+  }
+});
+
 // GET /api/registrations - Get all users
 router.get('/', async (_req, res) => {
   try {

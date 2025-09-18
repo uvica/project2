@@ -1509,7 +1509,7 @@ partners.forEach(p => {
             try {
                 // Use the correct endpoint for registrations
                 const link = document.createElement('a');
-                link.href = `${API_BASE}/registrations/${userId}/cv`;
+                link.href = `${API_BASE}/api/registrations/${userId}/cv`;
                 link.download = `${userName.replace(/[^a-zA-Z0-9.-]/g, '_')}_CV.pdf`;
                 link.target = '_blank';
                 document.body.appendChild(link);

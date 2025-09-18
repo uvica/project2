@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import mysql from "mysql2/promise";
+import fetch from "node-fetch";
 
 dotenv.config();
 const app = express();
@@ -79,7 +80,40 @@ app.get("/api/admin/users", async (req, res) => {
   }
 });
 
-// ----------------- Routes -----------------
+// ----------------- Download CV Route -----------------
+app.get("/api/download-cv/:userId", async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const [rows] = await db.execute(`
+      SELECT r.cv_url, r.cv_name
+      FROM users u
+      LEFT JOIN registrations r ON u.email = r.email
+      WHERE u.id = ?
+    `, [userId]);
+
+    if (!rows.length || !rows[0].cv_url) {
+      return res.status(404).send("CV not found");
+    }
+
+    const { cv_url, cv_name } = rows[0];
+    const response = await fetch(cv_url);
+    if (!response.ok) return res.status(500).send("Failed to fetch CV");
+
+    const buffer = await response.arrayBuffer();
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${cv_name}"`
+    });
+    res.send(Buffer.from(buffer));
+
+  } catch (err) {
+    console.error("Error downloading CV:", err);
+    res.status(500).send("Error downloading CV");
+  }
+});
+
+// ----------------- Other Routes -----------------
 import coursesRouter from "./routes/courses.js";
 import faqsRouter from "./routes/faqs.js";
 import partnersRouter from "./routes/partners.js";
@@ -101,12 +135,17 @@ app.use("/api/users", usersRouter);
 // ----------------- Test / Health -----------------
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 
-// ----------------- Serve Frontend -----------------
+// ----------------- Optional Frontend Serving -----------------
 const frontendPath = path.resolve("..", "frontend", "build");
-app.use(express.static(frontendPath));
-app.get(/^\/(?!api).*/, (_req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
-});
+if (fs.existsSync(frontendPath)) {
+  console.log("✅ Frontend build found, serving static files.");
+  app.use(express.static(frontendPath));
+  app.get(/^\/(?!api).*/, (_req, res) => {
+    res.sendFile(path.join(frontendPath, "index.html"));
+  });
+} else {
+  console.warn("⚠️ Frontend build folder not found. Skipping static serving.");
+}
 
 // ----------------- Central Error Handler -----------------
 app.use((err, _req, res, _next) => {
