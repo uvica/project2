@@ -41,11 +41,13 @@ router.post('/', upload.single('cv'), async (req, res) => {
     });
 
     const cv_url = result.secure_url;
+    const cv_filename = req.file.originalname;
+    const cv_mimetype = req.file.mimetype;
 
     // Insert user into DB
     await db.query(
-      'INSERT INTO users (full_name, email, phone, role, cv_url) VALUES (?, ?, ?, ?, ?)',
-      [fullName, email, phone, role, cv_url]
+      'INSERT INTO users (full_name, email, phone, role, cv_url, cv_filename, cv_mimetype) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [fullName, email, phone, role, cv_url, cv_filename, cv_mimetype]
     );
 
     res.status(201).json({ message: 'Registration successful' });
@@ -60,7 +62,7 @@ router.get('/:id/cv', async (req, res) => {
   try {
     const userId = req.params.id;
     const [rows] = await db.query(
-      'SELECT cv_url, full_name FROM users WHERE id = ?',
+      'SELECT cv_url, full_name, cv_filename, cv_mimetype FROM users WHERE id = ?',
       [userId]
     );
 
@@ -68,26 +70,23 @@ router.get('/:id/cv', async (req, res) => {
       return res.status(404).json({ error: 'CV not found' });
     }
 
-    const { cv_url, full_name } = rows[0];
+    const { cv_url, full_name, cv_filename, cv_mimetype } = rows[0];
     
     // Fetch the file from Cloudinary
     const response = await fetch(cv_url);
     if (!response.ok) {
       return res.status(500).json({ error: 'Failed to fetch CV from storage' });
     }
-
-    // Get the content type from Cloudinary response
-    const contentType = response.headers.get('content-type') || 'application/octet-stream';
-    
-    // Get file extension from URL or default to pdf
-    const urlParts = cv_url.split('.');
-    const extension = urlParts.length > 1 ? urlParts[urlParts.length - 1].split('?')[0] : 'pdf';
     
     const buffer = await response.arrayBuffer();
     
+    // Use stored metadata instead of guessing
+    const contentType = cv_mimetype || 'application/octet-stream';
+    const filename = cv_filename || `${full_name.replace(/[^a-zA-Z0-9.-]/g, '_')}_CV.pdf`;
+    
     res.set({
       'Content-Type': contentType,
-      'Content-Disposition': `attachment; filename="${full_name.replace(/[^a-zA-Z0-9.-]/g, '_')}_CV.${extension}"`
+      'Content-Disposition': `attachment; filename="${filename}"`
     });
     
     res.send(Buffer.from(buffer));
