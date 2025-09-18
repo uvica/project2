@@ -10,21 +10,27 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ----------------- CORS Setup -----------------
-const allowedOrigins = new Set([
-  process.env.FRONTEND_URL,
+const allowedOrigins = [
+  process.env.FRONTEND_URL,   // e.g., https://talentconnect-fd.onrender.com
   "http://localhost:3000",
-  "http://127.0.0.1:3000",
-].filter(Boolean));
+  "http://127.0.0.1:3000"
+].filter(Boolean).map(u => u.replace(/\/$/, "")); // normalize
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow Postman, etc.
-    if (allowedOrigins.has(origin.replace(/\/$/, ""))) return callback(null, true);
+    // allow server-to-server or Postman (no origin)
+    if (!origin) return callback(null, true);
+
+    const normalizedOrigin = origin.replace(/\/$/, "");
+    if (allowedOrigins.includes(normalizedOrigin)) return callback(null, true);
+
+    console.warn(`⚠️ CORS blocked request from origin: ${origin}`);
     return callback(new Error("Not allowed by CORS"));
   },
-  methods: ["GET","POST","PUT","DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
+
 
 // ----------------- Middleware -----------------
 app.use(express.json());
