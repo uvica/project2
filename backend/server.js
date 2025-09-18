@@ -137,16 +137,16 @@ app.use("/api/consultations", consultationsRouter);
 // ----------------- Test / Health -----------------
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 
-// ----------------- Optional Frontend Serving -----------------
-const frontendPath = path.resolve("..", "frontend", "build");
-if (fs.existsSync(frontendPath)) {
-  console.log("✅ Frontend build found, serving static files.");
+// ----------------- Frontend Serving -----------------
+const frontendPath = path.resolve("..", "frontend");
+if (fs.existsSync(path.join(frontendPath, "index.html"))) {
+  console.log("✅ Frontend folder found, serving static files.");
   app.use(express.static(frontendPath));
   app.get(/^\/(?!api).*/, (_req, res) => {
     res.sendFile(path.join(frontendPath, "index.html"));
   });
 } else {
-  console.warn("⚠️ Frontend build folder not found. Skipping static serving.");
+  console.warn("⚠️ Frontend folder not found. Skipping static serving.");
 }
 
 // ----------------- Central Error Handler -----------------

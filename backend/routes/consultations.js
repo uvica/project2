@@ -1,6 +1,7 @@
 // routes/consultations.js - Expert consultation booking routes
 import express from 'express';
 import db from '../db.js';
+import { sendConsultationConfirmationEmail, sendAdminNotificationEmail } from '../utils/emailService.js';
 
 const router = express.Router();
 
@@ -60,9 +61,31 @@ router.post('/', async (req, res) => {
       [full_name, email, phone, meeting_date, meeting_time]
     );
     
+    const consultation_id = result.insertId;
+    
+    // Prepare user details for email
+    const userDetails = {
+      full_name,
+      email,
+      phone,
+      meeting_date,
+      meeting_time,
+      consultation_id
+    };
+    
+    // Send confirmation email to user (don't wait for it to complete)
+    sendConsultationConfirmationEmail(userDetails).catch(error => {
+      console.error('Failed to send confirmation email:', error);
+    });
+    
+    // Send notification email to admin (optional)
+    sendAdminNotificationEmail(userDetails).catch(error => {
+      console.error('Failed to send admin notification email:', error);
+    });
+    
     res.status(201).json({ 
-      message: 'Consultation booked successfully!',
-      consultation_id: result.insertId,
+      message: 'Consultation booked successfully! A confirmation email has been sent to your email address.',
+      consultation_id,
       details: {
         full_name,
         email,
