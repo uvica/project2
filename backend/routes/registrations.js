@@ -3,6 +3,7 @@ import db from '../db.js';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import dotenv from 'dotenv';
+
 dotenv.config();
 
 const router = express.Router();
@@ -19,31 +20,31 @@ const upload = multer({ storage: multer.memoryStorage() }); // Memory storage fo
 // POST /api/registrations - Register a new user
 router.post('/', upload.single('cv'), async (req, res) => {
   const { fullName, email, phone, role } = req.body;
+
   if (!fullName || !email || !req.file) {
     return res.status(400).json({ error: 'Full name, email, and CV are required' });
   }
 
   try {
     // Check if email already exists
-    const [existing] = await db.query('SELECT id FROM registrations WHERE email=?', [email]);
+    const [existing] = await db.query('SELECT id FROM users WHERE email=?', [email]);
     if (existing.length) return res.status(400).json({ error: 'Email already exists' });
 
     // Upload CV to Cloudinary
     const result = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        { folder: 'registrations', resource_type: 'raw' },
+        { folder: 'users', resource_type: 'raw' },
         (err, uploadResult) => err ? reject(err) : resolve(uploadResult)
       );
       stream.end(req.file.buffer);
     });
 
     const cv_url = result.secure_url;
-    const cv_name = req.file.originalname;
 
     // Insert user into DB
     await db.query(
-      'INSERT INTO registrations (full_name, email, phone, roles, cv_name, cv_url) VALUES (?, ?, ?, ?, ?, ?)',
-      [fullName, email, phone, role, cv_name, cv_url]
+      'INSERT INTO users (full_name, email, phone, role, cv_url) VALUES (?, ?, ?, ?, ?)',
+      [fullName, email, phone, role, cv_url]
     );
 
     res.status(201).json({ message: 'Registration successful' });
@@ -57,11 +58,11 @@ router.post('/', upload.single('cv'), async (req, res) => {
 router.get('/', async (_req, res) => {
   try {
     const [rows] = await db.query(
-      'SELECT id, full_name, email, phone, roles, cv_name, cv_url, created_at FROM registrations ORDER BY id DESC'
+      'SELECT id, full_name, email, phone, role, cv_url, created_at FROM users ORDER BY id DESC'
     );
     res.json(rows);
   } catch (err) {
-    console.error(err);
+    console.error('Error fetching users:', err);
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });

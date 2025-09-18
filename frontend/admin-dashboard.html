@@ -1550,12 +1550,12 @@ partners.forEach(p => {
                     <td>${u.roles || 'N/A'}</td>
                     <td>${u.phone || 'N/A'}</td>
                     <td>
-                   ${u.cv_url
-  ? `<a href="${u.cv_url}" target="_blank" class="text-blue-400 hover:text-blue-300 hover:underline font-medium transition-colors flex items-center bg-transparent border-none cursor-pointer">
-      <i class="fas fa-download mr-2"></i>${u.cv_name || 'View CV'}
-    </a>`
-  : '<span class="text-gray-500">No CV</span>'
-}
+        ${u.cv_url
+        ? `<a href="${u.cv_url}" target="_blank" download="${(u.full_name || 'CV').replace(/[^a-zA-Z0-9.-]/g,'_')}_CV.pdf" class="text-blue-400 hover:text-blue-300 hover:underline font-medium">
+            Download CV
+          </a>`
+        : '<span class="text-gray-500">No CV</span>'
+      }
 
                     </td>
                 `;
