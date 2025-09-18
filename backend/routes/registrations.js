@@ -89,6 +89,63 @@ router.post('/', upload.single('cv'), async (req, res) => {
   }
 });
 
+// GET /api/registrations/:id/cv/preview - Preview CV file (inline)
+router.get('/:id/cv/preview', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const [rows] = await db.query(
+      'SELECT cv_url, full_name, cv_filename, cv_mimetype FROM users WHERE id = ?',
+      [userId]
+    );
+
+    if (!rows.length || !rows[0].cv_url) {
+      return res.status(404).json({ error: 'CV not found' });
+    }
+
+    const { cv_url, full_name, cv_filename, cv_mimetype } = rows[0];
+    
+    // Fetch the file from Cloudinary
+    const response = await fetch(cv_url);
+    if (!response.ok) {
+      return res.status(500).json({ error: 'Failed to fetch CV from storage' });
+    }
+    
+    const buffer = await response.arrayBuffer();
+    
+    // Use stored metadata with fallbacks
+    let contentType = cv_mimetype || 'application/octet-stream';
+    
+    // If no stored MIME type, try to determine from filename extension
+    if (!cv_mimetype && cv_filename) {
+      const ext = cv_filename.toLowerCase().match(/\.[^.]*$/)?.[0];
+      const mimeTypes = {
+        '.pdf': 'application/pdf',
+        '.doc': 'application/msword',
+        '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        '.txt': 'text/plain',
+        '.rtf': 'application/rtf'
+      };
+      contentType = mimeTypes[ext] || contentType;
+    }
+    
+    // Ensure filename is safe for preview
+    const safeFilename = cv_filename 
+      ? cv_filename.replace(/[^a-zA-Z0-9._-]/g, '_')
+      : `${full_name.replace(/[^a-zA-Z0-9.-]/g, '_')}_CV.pdf`;
+    
+    res.set({
+      'Content-Type': contentType,
+      'Content-Disposition': `inline; filename="${safeFilename}"`, // inline for preview
+      'X-Frame-Options': 'SAMEORIGIN' // Allow iframe embedding
+    });
+    
+    res.send(Buffer.from(buffer));
+  } catch (err) {
+    console.error('Error previewing CV:', err);
+    res.status(500).json({ error: 'Failed to preview CV' });
+  }
+});
+
 // GET /api/registrations/:id/cv - Download CV file
 router.get('/:id/cv', async (req, res) => {
   try {

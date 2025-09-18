@@ -141,20 +141,35 @@
             box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
         }
         
-        /* Enhanced Cards */
+        /* Enhanced Cards with Glassmorphism */
         .card { 
-            background: linear-gradient(135deg, #1f2937, #111827); 
-            border-radius: 0.75rem; 
+            background: rgba(31, 41, 55, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 1rem; 
             padding: 2rem; 
             margin-bottom: 1.5rem; 
-            border: 1px solid #374151; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            pointer-events: none;
         }
         .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            border-color: #4b5563;
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(31, 41, 55, 0.9);
         }
         
         /* Enhanced Modals */
@@ -172,7 +187,9 @@
             backdrop-filter: blur(5px);
         }
         .modal-content { 
-            background: linear-gradient(135deg, #1f2937, #111827); 
+            background: rgba(31, 41, 55, 0.9);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             padding: 2.5rem; 
             border-radius: 1rem; 
             max-width: 90vw; 
@@ -180,9 +197,21 @@
             overflow-y: auto; 
             width: 100%; 
             max-width: 600px; 
-            border: 1px solid #374151;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
             animation: modalSlideIn 0.3s ease-out;
+            position: relative;
+        }
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+            border-radius: 1rem;
+            pointer-events: none;
         }
         
         @keyframes modalSlideIn {
@@ -216,16 +245,19 @@
             border-color: #6b7280;
         }
         
-        /* Enhanced Stat Cards */
+        /* Enhanced Stat Cards with Glassmorphism */
         .stat-card {
-            background: linear-gradient(135deg, #1f2937, #111827);
+            background: rgba(31, 41, 55, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-radius: 1rem;
             padding: 2rem;
             text-align: center;
-            border: 1px solid #374151;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
         }
         .stat-card::before {
             content: '';
@@ -236,9 +268,21 @@
             height: 3px;
             background: linear-gradient(90deg, #3b82f6, #1d4ed8);
         }
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
         .stat-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            transform: translateY(-12px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            background: rgba(31, 41, 55, 0.8);
+            border-color: rgba(255, 255, 255, 0.15);
         }
         
         /* Enhanced Login Screen */
@@ -374,6 +418,79 @@
         
         @keyframes spin {
             to { transform: rotate(360deg); }
+        }
+        
+        /* Notification Styles */
+        .notification {
+            background: linear-gradient(135deg, #1f2937, #111827);
+            border: 1px solid #374151;
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            min-width: 300px;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateX(100%);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+        }
+        
+        .notification.success::before {
+            background: linear-gradient(90deg, #10b981, #059669);
+        }
+        
+        .notification.error::before {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+        }
+        
+        .notification.warning::before {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+        }
+        
+        .notification-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .notification.success .notification-icon {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .notification.error .notification-icon {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+        
+        .notification.warning .notification-icon {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+        
+        .notification.info .notification-icon {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
         }
         
         /* Responsive Design */
@@ -933,6 +1050,40 @@
         </div>
     </div>
 
+    <!-- CV Preview Modal -->
+    <div id="cvPreviewModal" class="modal admin-hidden">
+        <div class="modal-content" style="max-width: 90vw; max-height: 90vh; width: 1000px;">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-white" id="cvPreviewTitle">CV Preview</h3>
+                <button onclick="closeCVPreview()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div class="bg-gray-800 rounded-lg p-4 h-96 md:h-[600px]">
+                <iframe 
+                    id="cvPreviewFrame" 
+                    class="w-full h-full border-0 rounded-lg bg-white"
+                    src=""
+                    title="CV Preview">
+                </iframe>
+                <div id="cvPreviewError" class="hidden text-center text-gray-400 py-8">
+                    <i class="fas fa-exclamation-triangle text-4xl mb-4"></i>
+                    <p>Unable to preview this CV format.</p>
+                    <p class="text-sm mt-2">Try downloading the file instead.</p>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-4">
+                <button onclick="closeCVPreview()" class="btn-secondary">Close</button>
+                <button id="cvDownloadFromPreview" onclick="" class="btn-primary">
+                    <i class="fas fa-download mr-2"></i>Download CV
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="fixed top-4 right-4 z-50 space-y-2">
+        <!-- Notifications will be added here dynamically -->
+    </div>
+
     <script>
 
 const API_BASE =  "https://talentconnects.onrender.com";
@@ -978,6 +1129,13 @@ async function debugCourses() {
             document.getElementById('adminLoginScreen').classList.add('admin-hidden');
             document.getElementById('adminDashboard').classList.remove('admin-hidden');
             loadAllData();
+            
+            // Show welcome notification
+            showNotification('Welcome to Admin Dashboard!', 'success');
+            
+            // Start monitoring for new registrations
+            checkForNewRegistrations(); // Initial check
+            setInterval(checkForNewRegistrations, 30000); // Check every 30 seconds
         }
 
         // --- LOGOUT ---
@@ -1521,6 +1679,132 @@ partners.forEach(p => {
             }
         }
 
+        // CV Preview function
+        function previewCV(userId, userName) {
+            try {
+                const modal = document.getElementById('cvPreviewModal');
+                const title = document.getElementById('cvPreviewTitle');
+                const frame = document.getElementById('cvPreviewFrame');
+                const error = document.getElementById('cvPreviewError');
+                const downloadBtn = document.getElementById('cvDownloadFromPreview');
+                
+                // Set title and download button
+                title.textContent = `CV Preview - ${userName}`;
+                downloadBtn.onclick = () => downloadCV(userId, userName);
+                
+                // Show modal
+                modal.classList.remove('admin-hidden');
+                
+                // Load CV in iframe
+                const previewUrl = `${API_BASE}/api/registrations/${userId}/cv/preview`;
+                frame.src = previewUrl;
+                frame.style.display = 'block';
+                error.classList.add('hidden');
+                
+                // Handle iframe load errors
+                frame.onload = function() {
+                    console.log('CV preview loaded successfully');
+                };
+                
+                frame.onerror = function() {
+                    console.error('Failed to load CV preview');
+                    frame.style.display = 'none';
+                    error.classList.remove('hidden');
+                };
+                
+            } catch (error) {
+                console.error('Error opening CV preview:', error);
+                alert('Failed to open CV preview. Please try again.');
+            }
+        }
+        
+        function closeCVPreview() {
+            const modal = document.getElementById('cvPreviewModal');
+            const frame = document.getElementById('cvPreviewFrame');
+            
+            modal.classList.add('admin-hidden');
+            frame.src = ''; // Clear iframe to stop loading
+        }
+
+        // Notification System
+        function showNotification(message, type = 'info', duration = 5000) {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            
+            const icons = {
+                success: '✓',
+                error: '✕',
+                warning: '⚠',
+                info: 'ℹ'
+            };
+            
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <div class="notification-icon">
+                        ${icons[type] || icons.info}
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-white font-medium">${message}</p>
+                        <p class="text-gray-400 text-sm">${new Date().toLocaleTimeString()}</p>
+                    </div>
+                    <button onclick="removeNotification(this.parentElement)" class="text-gray-400 hover:text-white ml-3">
+                        ✕
+                    </button>
+                </div>
+            `;
+            
+            container.appendChild(notification);
+            
+            // Trigger animation
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            // Auto remove
+            setTimeout(() => removeNotification(notification), duration);
+            
+            return notification;
+        }
+        
+        function removeNotification(notification) {
+            if (notification && notification.parentElement) {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    if (notification.parentElement) {
+                        notification.parentElement.removeChild(notification);
+                    }
+                }, 300);
+            }
+        }
+        
+        // User count monitoring for notifications
+        let lastUserCount = 0;
+        
+        function checkForNewRegistrations() {
+            fetch(`${API_BASE}/api/users`)
+                .then(response => response.json())
+                .then(users => {
+                    const currentCount = users.length;
+                    if (lastUserCount > 0 && currentCount > lastUserCount) {
+                        const newUsers = currentCount - lastUserCount;
+                        showNotification(
+                            `${newUsers} new registration${newUsers > 1 ? 's' : ''} received!`, 
+                            'success'
+                        );
+                        
+                        // Update the user counts immediately
+                        document.getElementById('totalUsers').innerText = currentCount;
+                        const totalUsersDisplay = document.getElementById('totalUsersDisplay');
+                        if (totalUsersDisplay) {
+                            totalUsersDisplay.innerText = currentCount;
+                        }
+                    }
+                    lastUserCount = currentCount;
+                })
+                .catch(err => {
+                    console.error('Error checking registrations:', err);
+                });
+        }
+
         async function fetchUsers() {
             try {
                 const res = await fetch(`${API_BASE}/api/users`);
@@ -1528,7 +1812,14 @@ partners.forEach(p => {
                 if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
                 const users = await res.json();
                 renderUsers(users);
-                document.getElementById('totalUsers').innerText = users.length;
+                
+                // Update both total user displays
+                const userCount = users.length;
+                document.getElementById('totalUsers').innerText = userCount;
+                const totalUsersDisplay = document.getElementById('totalUsersDisplay');
+                if (totalUsersDisplay) {
+                    totalUsersDisplay.innerText = userCount;
+                }
             } catch(err) {
                 console.error('Error fetching users:', err);
                 document.getElementById('userList').innerHTML = `<tr><td colspan="5" class="text-red-400">Error loading users: ${err.message}. Check backend connection.</td></tr>`;
@@ -1551,9 +1842,14 @@ partners.forEach(p => {
                     <td>${u.phone || 'N/A'}</td>
                     <td>
         ${u.cv_url
-        ? `<button onclick="downloadCV(${u.id}, '${u.full_name}')" class="text-blue-400 hover:text-blue-300 hover:underline font-medium bg-transparent border-none cursor-pointer">
-            Download CV
-          </button>`
+        ? `<div class="flex space-x-2">
+            <button onclick="previewCV(${u.id}, '${u.full_name}')" class="text-green-400 hover:text-green-300 hover:underline font-medium bg-transparent border-none cursor-pointer text-sm">
+              👁️ Preview
+            </button>
+            <button onclick="downloadCV(${u.id}, '${u.full_name}')" class="text-blue-400 hover:text-blue-300 hover:underline font-medium bg-transparent border-none cursor-pointer text-sm">
+              📥 Download
+            </button>
+          </div>`
         : '<span class="text-gray-500">No CV</span>'
       }
 
