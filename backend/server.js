@@ -1,4 +1,3 @@
-// server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -12,14 +11,14 @@ const PORT = process.env.PORT || 5000;
 
 // ----------------- CORS Setup -----------------
 const allowedOriginsSet = new Set([
-  process.env.FRONTEND_URL,   // https://talentconnect-fd.onrender.com
+  process.env.FRONTEND_URL,
   "http://localhost:3000",
   "http://127.0.0.1:3000"
 ].filter(Boolean).map(u => u.replace(/\/$/, "")));
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow Postman, curl
+    if (!origin) return callback(null, true);
     if (allowedOriginsSet.has(origin.replace(/\/$/, ""))) return callback(null, true);
     return callback(new Error("Not allowed by CORS"));
   },
@@ -30,12 +29,12 @@ app.use(cors({
 // ----------------- Middleware -----------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static('uploads')); // if you ever use local uploads
+app.use('/uploads', express.static('uploads'));
 
 // ----------------- Database Connection -----------------
 let sslConfig;
 try {
-  if (String(process.env.DB_REQUIRE_SSL || "").toLowerCase() === "true") {
+  if ((process.env.DB_REQUIRE_SSL || "").toLowerCase() === "true") {
     const caPath = process.env.DB_CA || "./certs/tidb-ca.pem";
     sslConfig = { rejectUnauthorized: true };
     if (fs.existsSync(caPath)) sslConfig.ca = fs.readFileSync(caPath);
@@ -56,6 +55,29 @@ const db = mysql.createPool({
 db.getConnection()
   .then(conn => { console.log("✅ DB Connected"); conn.release(); })
   .catch(err => { console.error("❌ DB Connection Error:", err.message); });
+
+// ----------------- Admin Users Route -----------------
+app.get("/api/admin/users", async (req, res) => {
+  try {
+    const [rows] = await db.execute(`
+      SELECT 
+        u.id,
+        u.full_name,
+        u.email,
+        u.phone,
+        u.role,
+        r.cv_url,
+        r.cv_name,
+        r.created_at AS registration_date
+      FROM users u
+      LEFT JOIN registrations r ON u.email = r.email
+    `);
+    res.json(rows);
+  } catch (err) {
+    console.error("Error fetching admin users:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 
 // ----------------- Routes -----------------
 import coursesRouter from "./routes/courses.js";
@@ -80,7 +102,7 @@ app.use("/api/users", usersRouter);
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 
 // ----------------- Serve Frontend -----------------
-const frontendPath = path.resolve("..", "frontend", "build"); // if React, use build folder
+const frontendPath = path.resolve("..", "frontend", "build");
 app.use(express.static(frontendPath));
 app.get(/^\/(?!api).*/, (_req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
