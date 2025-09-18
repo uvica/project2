@@ -1842,14 +1842,9 @@ partners.forEach(p => {
                     <td>${u.phone || 'N/A'}</td>
                     <td>
         ${u.cv_url
-        ? `<div class="flex space-x-2">
-            <button onclick="previewCV(${u.id}, '${u.full_name}')" class="text-green-400 hover:text-green-300 hover:underline font-medium bg-transparent border-none cursor-pointer text-sm">
-              👁️ Preview
-            </button>
-            <button onclick="downloadCV(${u.id}, '${u.full_name}')" class="text-blue-400 hover:text-blue-300 hover:underline font-medium bg-transparent border-none cursor-pointer text-sm">
-              📥 Download
-            </button>
-          </div>`
+        ? `<button onclick="downloadCV(${u.id}, '${u.full_name}')" class="text-blue-400 hover:text-blue-300 hover:underline font-medium bg-transparent border-none cursor-pointer">
+            📥 Download CV
+          </button>`
         : '<span class="text-gray-500">No CV</span>'
       }
 
