@@ -3,88 +3,78 @@ import db from '../db.js';
 
 const router = express.Router();
 
-// Fetch all registered users (for admin dashboard)
+// ---------------------- GET all users ----------------------
 router.get('/', async (_req, res) => {
   try {
     const [rows] = await db.query(
-      'SELECT id, full_name, email, phone, roles, cv, cv_name, created_at FROM registrations ORDER BY id DESC'
+      'SELECT id, full_name, email, phone, roles, cv_name, cv, created_at FROM registrations ORDER BY id DESC'
     );
-    res.json(rows);
+
+    // Add cv_url for admin
+    const users = rows.map(row => ({
+      ...row,
+      cv_url: row.cv_name || `/api/users/cv/${row.id}` // Cloudinary URL or local download route
+    }));
+
+    res.json(users);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch users' });
   }
 });
 
-// Fetch a single user by ID
+// ---------------------- GET single user ----------------------
 router.get('/:id', async (req, res) => {
   try {
     const [rows] = await db.query(
-      'SELECT id, full_name, email, phone, roles, cv, cv_name, created_at FROM registrations WHERE id = ?',
+      'SELECT id, full_name, email, phone, roles, cv_name, cv, created_at FROM registrations WHERE id=?',
       [req.params.id]
     );
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    res.json(rows[0]);
+    const user = rows[0];
+    user.cv_url = user.cv_name || `/api/users/cv/${user.id}`;
+    res.json(user);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch user' });
   }
 });
 
-// Download CV by user ID
+// ---------------------- Download CV ----------------------
 router.get('/cv/:id', async (req, res) => {
   try {
     const [rows] = await db.query(
-      'SELECT full_name, cv, cv_name FROM registrations WHERE id = ?',
+      'SELECT full_name, cv_name, cv FROM registrations WHERE id=?',
       [req.params.id]
     );
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+    const { full_name, cv_name, cv } = rows[0];
+
+    if (!cv && !cv_name) return res.status(404).json({ error: 'CV not found' });
+
+    // Cloudinary CV → redirect
+    if (cv_name && cv_name.startsWith('http')) {
+      return res.redirect(cv_name);
     }
 
-    const { full_name, cv, cv_name } = rows[0];
+    // Local buffer → send as download
+    const ext = cv_name ? cv_name.substring(cv_name.lastIndexOf('.')) : '.pdf';
+    const mimeType = {
+      '.pdf': 'application/pdf',
+      '.doc': 'application/msword',
+      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.txt': 'text/plain'
+    }[ext.toLowerCase()] || 'application/octet-stream';
 
-    if (!cv) {
-      return res.status(404).json({ error: 'CV not found' });
-    }
+    const safeName = (full_name || 'cv').replace(/[^a-zA-Z0-9.-]/g, '_') + ext;
 
-    // Detect MIME type based on extension
-    let ext = '';
-    let mimeType = 'application/octet-stream';
-
-    if (cv_name) {
-      ext = cv_name.substring(cv_name.lastIndexOf('.')).toLowerCase();
-      switch (ext) {
-        case '.pdf':
-          mimeType = 'application/pdf';
-          break;
-        case '.doc':
-          mimeType = 'application/msword';
-          break;
-        case '.docx':
-          mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-          break;
-        case '.txt':
-          mimeType = 'text/plain';
-          break;
-      }
-    }
-
-    // Create a safe filename
-    const safeFileName = (full_name || 'cv').replace(/[^a-zA-Z0-9.-]/g, '_') + (ext || '');
-
-    res.setHeader('Content-Disposition', `attachment; filename="${safeFileName}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${safeName}"`);
     res.setHeader('Content-Type', mimeType);
-
-    // Send blob buffer directly
     res.end(cv);
   } catch (err) {
-    console.error('Error downloading CV:', err);
+    console.error('CV download error:', err);
     res.status(500).json({ error: 'Failed to download CV' });
   }
 });
