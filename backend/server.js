@@ -1,3 +1,4 @@
+// server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -10,27 +11,26 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ----------------- CORS Setup -----------------
-const allowedOrigins = [
-  process.env.FRONTEND_URL,   // e.g., https://talentconnect-fd.onrender.com
+const allowedOriginsSet = new Set([
+  process.env.FRONTEND_URL,   // https://talentconnect-fd.onrender.com
   "http://localhost:3000",
   "http://127.0.0.1:3000"
-].filter(Boolean).map(u => u.replace(/\/$/, "")); // normalize
+].filter(Boolean).map(u => u.replace(/\/$/, "")));
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // Postman, curl
-    if (allowedOrigins.has(origin.replace(/\/$/, ""))) return callback(null, true);
+    if (!origin) return callback(null, true); // allow Postman, curl
+    if (allowedOriginsSet.has(origin.replace(/\/$/, ""))) return callback(null, true);
     return callback(new Error("Not allowed by CORS"));
   },
   methods: ["GET","POST","PUT","DELETE"],
   credentials: true
 }));
 
-
 // ----------------- Middleware -----------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static('uploads')); // if you ever use local uploads
 
 // ----------------- Database Connection -----------------
 let sslConfig;
@@ -77,20 +77,18 @@ app.use("/api/admins", adminsRouter);
 app.use("/api/users", usersRouter);
 
 // ----------------- Test / Health -----------------
-app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 
 // ----------------- Serve Frontend -----------------
-const frontendPath = path.resolve("..", "frontend");
+const frontendPath = path.resolve("..", "frontend", "build"); // if React, use build folder
 app.use(express.static(frontendPath));
-
-// Only serve index.html for non-API GET requests
-app.get(/^\/(?!api).*/, (req, res) => {
+app.get(/^\/(?!api).*/, (_req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 
 // ----------------- Central Error Handler -----------------
-app.use((err, req, res, next) => {
-  console.error("Server Error:", err.message, req.path);
+app.use((err, _req, res, _next) => {
+  console.error("Server Error:", err.message);
   res.status(500).json({
     error: err.message || "Internal server error",
     stack: process.env.NODE_ENV === "development" ? err.stack : undefined
