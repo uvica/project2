@@ -1012,55 +1012,52 @@ async function debugCourses() {
         }
 
 
-        // --- SITE STATS ---
+// --- SITE STATS ---
 async function loadSiteStats() {
   try {
     const res = await fetch(`${API_BASE}/api/site_stats`); // added /api
     if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
     const data = await res.json();
-    console.log(data);
-  } catch (err) {
-    console.error("Error loading site stats:", err);
-  }
+    console.log("Site stats data:", data);
 
-        // Update ALL form fields including the ones you added
-        const fieldMappings = {
-            'program_duration': data.program_duration || '3 Months',
-            'course_tracks': data.course_tracks || '8+',
-            'placement_rate': data.placement_rate || '100%',
-            'industry_mentors': data.industry_mentors || '50+',
-            'min_stipend': data.min_stipend || '₹15K',
-            'max_stipend': data.max_stipend || '₹35K',
-            'alumni_network': data.alumni_network || '500+',
-            'partner_companies': data.partner_companies || '200+',
-            'average_rating': data.average_rating || '4.9/5',
-            'avg_package': data.avg_package || '₹12.5L',
-            'highest_package': data.highest_package || '₹45L',
-            'success_rate': data.success_rate || '95%',
-            'hands_on_projects': data.hands_on_projects || '25+',
-            'job_placement_guarantee': data.job_placement_guarantee || '100%',
-            'active_alumni_network': data.active_alumni_network || '500+',
-            'internship_placement': data.internship_placement || '100%',
-            'convert_to_full_time': data.convert_to_full_time || '85%',
-            'avg_job_placement_time': data.avg_job_placement_time || '2 Weeks',
-            'average_starting_salary': data.average_starting_salary || '₹8.5L',
-            'internship_stipend': data.internship_stipend || '₹15K-₹35K'
-        };
+    // Update ALL form fields including the ones you added
+    const fieldMappings = {
+      'program_duration': data.program_duration || '3 Months',
+      'course_tracks': data.course_tracks || '8+',
+      'placement_rate': data.placement_rate || '100%',
+      'industry_mentors': data.industry_mentors || '50+',
+      'min_stipend': data.min_stipend || '₹15K',
+      'max_stipend': data.max_stipend || '₹35K',
+      'alumni_network': data.alumni_network || '500+',
+      'partner_companies': data.partner_companies || '200+',
+      'average_rating': data.average_rating || '4.9/5',
+      'avg_package': data.avg_package || '₹12.5L',
+      'highest_package': data.highest_package || '₹45L',
+      'success_rate': data.success_rate || '95%',
+      'hands_on_projects': data.hands_on_projects || '25+',
+      'job_placement_guarantee': data.job_placement_guarantee || '100%',
+      'active_alumni_network': data.active_alumni_network || '500+',
+      'internship_placement': data.internship_placement || '100%',
+      'convert_to_full_time': data.convert_to_full_time || '85%',
+      'avg_job_placement_time': data.avg_job_placement_time || '2 Weeks',
+      'average_starting_salary': data.average_starting_salary || '₹8.5L',
+      'internship_stipend': data.internship_stipend || '₹15K-₹35K'
+    };
 
-    try {
     // Update all form fields
     for (const [fieldId, value] of Object.entries(fieldMappings)) {
-        const element = document.getElementById(fieldId);
-        if (element) {
-            element.value = value;
-        } else {
-            console.warn(`Element with ID ${fieldId} not found`);
-        }
+      const element = document.getElementById(fieldId);
+      if (element) {
+        element.value = value;
+      } else {
+        console.warn(`Element with ID ${fieldId} not found`);
+      }
     }
-} catch (err) {
+
+  } catch (err) {
     console.error('Error loading site stats:', err);
     alert(`Failed to load site stats: ${err.message}. Check console for details.`);
-}
+  }
 }
 
 
@@ -1350,21 +1347,28 @@ const response = await fetch(`${API_BASE}/api/partners`, {
         container.innerHTML = '<p class="text-gray-400">No partners found.</p>';
         return;
     }
-    partners.forEach(p => {
+partners.forEach(p => {
         const div = document.createElement('div');
         div.className = 'item-row';
         div.innerHTML = `
-            <span>
-                <strong>${p.name}</strong> - 
-                <img src="${/^https?:\/\//.test(p.logo_url) ? p.logo_url : ('http://localhost:5000' + (p.logo_url?.startsWith('/') ? p.logo_url : ('/' + p.logo_url)))}" alt="${p.name}" 
-     style="height:50px; border-radius:5px; margin-top:5px;" 
-     onerror="this.src='https://placehold.co/150x80?text=Image+Not+Found'">
+           <span>
+  <strong>${p.name}</strong> - 
+  <img 
+    src="${
+      /^https?:\/\//.test(p.logo_url)
+        ? p.logo_url
+        : `${window.location.origin}${p.logo_url?.startsWith('/') ? p.logo_url : '/' + p.logo_url}`
+    }" 
+    alt="${p.name}" 
+    style="height:50px; border-radius:5px; margin-top:5px;" 
+    onerror="this.src='https://placehold.co/150x80?text=Image+Not+Found'"
+  >
+</span>
+<span>
+  <button class="btn-secondary mr-2" onclick='openPartnerModal(${JSON.stringify(p)})'>Edit</button>
+  <button class="btn-danger" onclick="deletePartner(${p.id})">Delete</button>
+</span>
 
-            </span>
-            <span>
-                <button class="btn-secondary mr-2" onclick='openPartnerModal(${JSON.stringify(p)})'>Edit</button>
-                <button class="btn-danger" onclick="deletePartner(${p.id})">Delete</button>
-            </span>
         `;
         container.appendChild(div);
     });
@@ -1493,7 +1497,7 @@ const response = await fetch(`${API_BASE}/api/partners`, {
                     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
                     loadStories();
                 } catch(err) { 
-                    console.error('Error deleting story:', err);
+                        console.error('Error deleting story:', err);
                     alert(`Failed to delete story: ${err.message}`);
                 }
             }

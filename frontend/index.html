@@ -1462,7 +1462,17 @@ const API_BASE =  "https://talentconnects.onrender.com";
           <div class="carousel-role">${story.role || ''}</div>
           <div class="carousel-company">${story.company || ''}</div>
         </div>
-        <img src="${story.image || 'https://placehold.co/150x150?text=No+Image'}" alt="${story.name || 'Anonymous'}" class="carousel-image">
+        <img 
+  src="${
+    /^https?:\/\//.test(story.image)
+      ? story.image
+      : `${window.location.origin}${story.image?.startsWith('/') ? story.image : '/' + story.image}`
+  }" 
+  alt="${story.name || 'Anonymous'}" 
+  class="carousel-image"
+  onerror="this.src='https://placehold.co/150x150?text=No+Image'"
+>
+
         <button class="carousel-button next" onclick="nextStory()">&#8250;</button>
       `;
       track.appendChild(storyItem);
