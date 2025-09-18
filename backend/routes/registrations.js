@@ -3,6 +3,7 @@ import db from '../db.js';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import dotenv from 'dotenv';
+import fetch from 'node-fetch';
 
 dotenv.config();
 
@@ -54,12 +55,12 @@ router.post('/', upload.single('cv'), async (req, res) => {
   }
 });
 
-// GET /api/registrations/:id/cv - Redirect to the user's CV URL
+// GET /api/registrations/:id/cv - Download CV file
 router.get('/:id/cv', async (req, res) => {
   try {
     const userId = req.params.id;
     const [rows] = await db.query(
-      'SELECT cv_url FROM users WHERE id = ?',
+      'SELECT cv_url, full_name FROM users WHERE id = ?',
       [userId]
     );
 
@@ -67,10 +68,31 @@ router.get('/:id/cv', async (req, res) => {
       return res.status(404).json({ error: 'CV not found' });
     }
 
-    // Redirect to the Cloudinary (or external) URL so the browser handles the file type correctly
-    return res.redirect(302, rows[0].cv_url);
+    const { cv_url, full_name } = rows[0];
+    
+    // Fetch the file from Cloudinary
+    const response = await fetch(cv_url);
+    if (!response.ok) {
+      return res.status(500).json({ error: 'Failed to fetch CV from storage' });
+    }
+
+    // Get the content type from Cloudinary response
+    const contentType = response.headers.get('content-type') || 'application/octet-stream';
+    
+    // Get file extension from URL or default to pdf
+    const urlParts = cv_url.split('.');
+    const extension = urlParts.length > 1 ? urlParts[urlParts.length - 1].split('?')[0] : 'pdf';
+    
+    const buffer = await response.arrayBuffer();
+    
+    res.set({
+      'Content-Type': contentType,
+      'Content-Disposition': `attachment; filename="${full_name.replace(/[^a-zA-Z0-9.-]/g, '_')}_CV.${extension}"`
+    });
+    
+    res.send(Buffer.from(buffer));
   } catch (err) {
-    console.error('Error redirecting to CV URL:', err);
+    console.error('Error downloading CV:', err);
     res.status(500).json({ error: 'Failed to retrieve CV' });
   }
 });
