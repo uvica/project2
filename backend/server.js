@@ -79,17 +79,13 @@ app.options('*', cors({
 }));
 
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    const normalized = origin.replace(/\/$/, "");
-    if (allowedOriginsSet.has(normalized)) return callback(null, true);
-    console.warn(`CORS blocked: ${origin} not in allowed origins`);
-    return callback(new Error("Not allowed by CORS"));
-  },
-  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization'],
+  origin: [
+      'https://talentconnects.onrender.com',
+      'http://localhost:3000' // For local development
+  ],
   credentials: true,
-  optionsSuccessStatus: 200
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // ----------------- Middleware -----------------

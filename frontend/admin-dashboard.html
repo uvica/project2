@@ -1900,25 +1900,39 @@ partners.forEach(p => {
         }
 
         // --- CONSULTATIONS ---
-        async function loadConsultations() {
-            try {
-                console.log('Loading consultations...');
-                const res = await fetch(`${API_BASE}/api/consultations`);
-                if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
-                
-                const consultations = await res.json();
-                console.log('Consultations loaded:', consultations.length);
-                
-                renderConsultations(consultations);
-                document.getElementById('totalConsultations').innerText = consultations.length;
-            } catch(err) {
-                console.error('Error loading consultations:', err);
-                const container = document.getElementById('consultationList');
-                if (container) {
-                    container.innerHTML = '<tr><td colspan="8" class="text-red-400">Error loading consultations</td></tr>';
-                }
-            }
+       // In admin-dashboard.html, update the loadConsultations function:
+async function loadConsultations() {
+    try {
+        // Use the full URL to your Render backend
+        const API_BASE = 'https://talentconnects.onrender.com';
+        const response = await fetch(`${API_BASE}/api/consultations`, {
+            credentials: 'include' // Important for cookies if using sessions
+        });
+        
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(error.error || `HTTP error! Status: ${response.status}`);
         }
+        
+        const data = await response.json();
+        console.log('Loaded consultations:', data);
+        
+        // Update the UI with the data
+        renderConsultations(data);
+        document.getElementById('totalConsultations').innerText = data.length || 0;
+        
+        return data;
+    } catch (error) {
+        console.error('Error loading consultations:', error);
+        const container = document.getElementById('consultationList');
+        if (container) {
+            container.innerHTML = '<tr><td colspan="8" class="text-red-400">Error loading consultations: ' + 
+                                error.message + '</td></tr>';
+        }
+        showNotification('Error loading consultations: ' + error.message, 'error');
+        throw error;
+    }
+}
 
         function renderConsultations(consultations) {
             const container = document.getElementById('consultationList');
