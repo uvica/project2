@@ -346,32 +346,60 @@
         
         /* Enhanced Tables */
         .user-table {
-            width: 100%;
+            min-width: 100%;
             border-collapse: collapse;
-            background: linear-gradient(135deg, #1f2937, #111827);
-            border-radius: 1rem;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-top: 1rem;
+            table-layout: fixed;
         }
         .user-table th, .user-table td {
-            padding: 1.25rem;
+            padding: 0.75rem 1rem;
             text-align: left;
-            border-bottom: 1px solid #374151;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
         .user-table th {
-            background: linear-gradient(135deg, #374151, #2d3748);
-            font-weight: 700;
-            color: #f9fafb;
+            color: #9ca3af;
+            font-weight: 600;
             text-transform: uppercase;
-            font-size: 0.875rem;
+            font-size: 0.75rem;
             letter-spacing: 0.05em;
+            position: sticky;
+            top: 0;
+            background: rgba(31, 41, 55, 0.95);
+            z-index: 10;
         }
-        .user-table tr {
-            transition: all 0.3s ease;
+        .user-table tr:last-child td {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .user-table tr:hover {
-            background: linear-gradient(135deg, #2d3748, #374151);
-            transform: scale(1.01);
+        .user-table tr:hover td {
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+        .overflow-x-auto {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            -ms-overflow-style: -ms-autohiding-scrollbar;
+            scrollbar-width: thin;
+            scrollbar-color: #4b5563 #1f2937;
+            border-radius: 0.5rem;
+            margin: 0 -0.5rem;
+            padding: 0 0.5rem;
+        }
+        .overflow-x-auto::-webkit-scrollbar {
+            height: 8px;
+        }
+        .overflow-x-auto::-webkit-scrollbar-track {
+            background: #1f2937;
+            border-radius: 4px;
+        }
+        .overflow-x-auto::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+            border-radius: 4px;
+        }
+        .overflow-x-auto::-webkit-scrollbar-thumb:hover {
+            background-color: #6b7280;
         }
         
         /* Enhanced Input Groups */
@@ -976,21 +1004,23 @@
                             </div>
                         </div>
                     </div>
-                    <table class="user-table">
-                        <thead>
-                            <tr>
-                                <th>Full Name</th>
-                                <th>Email</th>
-                                <th>Phone</th>
-                                <th>Meeting Date</th>
-                                <th>Time Slot</th>
-                                <th>Status</th>
-                                <th>Booked On</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="consultationList"></tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full user-table">
+                            <thead>
+                                <tr>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Meeting Date</th>
+                                    <th>Time Slot</th>
+                                    <th>Status</th>
+                                    <th>Booked On</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="consultationList"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1218,6 +1248,7 @@ async function loadSiteStats() {
   try {
     const res = await fetch(`${API_BASE}/api/site_stats`); // added /api
     if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+    
     const data = await res.json();
     console.log("Site stats data:", data);
 
@@ -1881,7 +1912,7 @@ partners.forEach(p => {
                 row.innerHTML = `
                     <td>${u.full_name}</td>
                     <td>${u.email}</td>
-                    <td>${u.roles || 'N/A'}</td>
+                    <td>${u.role || 'N/A'}</td>
                     <td>${u.phone || 'N/A'}</td>
                     <td>
         ${u.cv_url
@@ -1943,10 +1974,23 @@ async function loadConsultations() {
                 return;
             }
             
+            // Sort by meeting date (newest first)
+            consultations.sort((a, b) => new Date(b.meeting_date) - new Date(a.meeting_date));
+            
             consultations.forEach(consultation => {
                 const row = document.createElement('tr');
-                const meetingDate = new Date(consultation.meeting_date).toLocaleDateString();
-                const bookedDate = new Date(consultation.created_at).toLocaleDateString();
+                const meetingDate = new Date(consultation.meeting_date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                const bookedDate = new Date(consultation.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
                 
                 // Status badge styling
                 const statusColors = {
@@ -1957,19 +2001,23 @@ async function loadConsultations() {
                 };
                 
                 row.innerHTML = `
-                    <td>${consultation.full_name}</td>
-                    <td>${consultation.email}</td>
-                    <td>${consultation.phone}</td>
+                    <td class="font-medium">${consultation.full_name || 'N/A'}</td>
+                    <td><a href="mailto:${consultation.email}" class="text-blue-400 hover:underline">${consultation.email || 'N/A'}</a></td>
+                    <td>${consultation.phone || 'N/A'}</td>
                     <td>${meetingDate}</td>
-                    <td>${consultation.meeting_time}</td>
+                    <td>${consultation.meeting_time || 'N/A'}</td>
                     <td>
                         <span class="px-2 py-1 rounded-full text-xs border ${statusColors[consultation.status] || statusColors.pending}">
-                            ${consultation.status.charAt(0).toUpperCase() + consultation.status.slice(1)}
+                            ${consultation.status ? (consultation.status.charAt(0).toUpperCase() + consultation.status.slice(1)) : 'N/A'}
                         </span>
                     </td>
                     <td>${bookedDate}</td>
-                    <td>
-                        <select onchange="updateConsultationStatus(${consultation.id}, this.value)" class="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white">
+                    <td class="min-w-[150px]">
+                        <select 
+                            onchange="updateConsultationStatus('${consultation.id}', this.value)" 
+                            class="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1.5 text-sm text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                            data-consultation-id="${consultation.id}"
+                        >
                             <option value="pending" ${consultation.status === 'pending' ? 'selected' : ''}>Pending</option>
                             <option value="confirmed" ${consultation.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
                             <option value="completed" ${consultation.status === 'completed' ? 'selected' : ''}>Completed</option>
@@ -1984,19 +2032,42 @@ async function loadConsultations() {
 
         async function updateConsultationStatus(consultationId, newStatus) {
             try {
+                // Show loading state
+                const selectElement = document.querySelector(`select[data-consultation-id="${consultationId}"]`);
+                const originalValue = selectElement ? selectElement.value : null;
+                if (selectElement) {
+                    selectElement.disabled = true;
+                    selectElement.innerHTML = '<option>Updating...</option>';
+                }
+
                 const response = await fetch(`${API_BASE}/api/consultations/${consultationId}/status`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({ status: newStatus })
                 });
+                
+                const data = await response.json();
                 
                 if (response.ok) {
                     showNotification(`Consultation status updated to ${newStatus}`, 'success');
                     loadConsultations(); // Reload to reflect changes
                 } else {
-                    throw new Error('Failed to update status');
+                    // Revert UI on error
+                    if (selectElement && originalValue) {
+                        selectElement.innerHTML = `
+                            <option value="pending" ${originalValue === 'pending' ? 'selected' : ''}>Pending</option>
+                            <option value="confirmed" ${originalValue === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                            <option value="completed" ${originalValue === 'completed' ? 'selected' : ''}>Completed</option>
+                            <option value="cancelled" ${originalValue === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                        `;
+                        selectElement.value = originalValue;
+                        selectElement.disabled = false;
+                    }
+                    throw new Error(data.error || 'Failed to update status');
                 }
             } catch (error) {
                 console.error('Error updating consultation status:', error);
