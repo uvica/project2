@@ -1127,10 +1127,8 @@
     </div>
 
     <script>
-
-// const API_BASE =  "http://localhost:5000";
-const API_BASE =  "https://talentconnects.onrender.com";
-
+// ----------------- API Configuration -----------------
+const API_BASE = "https://talentconnects.onrender.com"; // Production backend URL
 
 async function debugCourses() {
   try {
@@ -1670,7 +1668,7 @@ partners.forEach(p => {
         // Use s.image for the image path
         // If s.image starts with http, use as is; else prefix with backend URL
         let imgSrc = s.image
-            ? (/^https?:\/\//.test(s.image) ? s.image : `http://localhost:5000${s.image.startsWith('/') ? s.image : '/' + s.image}`)
+            ? (/^https?:\/\//.test(s.image) ? s.image : `${API_BASE}${s.image.startsWith('/') ? s.image : '/' + s.image}`)
             : '';
         div.innerHTML = `
             <span class="flex-1">

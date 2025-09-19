@@ -1278,9 +1278,7 @@
 
         <script>
   // ----------------- API Configuration -----------------
-const API_BASE =  "http://localhost:5000";
-
-// const API_BASE =  "https://talentconnects.onrender.com";
+const API_BASE = "https://talentconnects.onrender.com"; // Production backend URL
 
   // ----------------- FAQ Data -----------------
   const faqs = [
@@ -1357,16 +1355,26 @@ const API_BASE =  "http://localhost:5000";
 
   // ----------------- Load Site Stats -----------------
   async function loadSiteStats() {
-  try {
-    console.log('Fetching site stats from:', `${API_BASE}/api/site_stats`);
-    const res = await fetch(`${API_BASE}/api/site_stats?t=${new Date().getTime()}`, {
-      cache: 'no-cache',
-      headers: { 'Content-Type': 'application/json' }
-    });
+    const url = `${API_BASE}/api/site_stats?t=${new Date().getTime()}`;
+    console.log('Fetching site stats from:', url);
+    
+    try {
+      const res = await fetch(url, {
+        cache: 'no-cache',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include' // Include cookies if needed
+      });
 
-      if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+      console.log('Response status:', res.status, res.statusText);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`HTTP error! Status: ${res.status} - ${res.statusText}`);
+      }
+      
       const data = await res.json();
-      console.log('Site stats API Response:', JSON.stringify(data, null, 2));
+      console.log('Site stats API Response:', data);
 
       const statsMap = {
         programDuration: data.program_duration || '3 Months',

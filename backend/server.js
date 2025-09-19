@@ -11,20 +11,62 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ----------------- CORS Setup -----------------
-const allowedOriginsSet = new Set([
-  process.env.FRONTEND_URL,
-  "http://localhost:3000",
-  "http://127.0.0.1:3000"
-].filter(Boolean).map(u => u.replace(/\/$/, "")));
+// Support multiple env-configured origins via FRONTEND_URL or comma-separated FRONTEND_URLS
+const rawEnvOrigins = [process.env.FRONTEND_URL, process.env.FRONTEND_URLS]
+  .filter(Boolean)
+  .flatMap((s) => s.split(","))
+  .map((s) => s.trim())
+  .filter(Boolean);
 
+// Common local dev origins (VSCode Live Server, Vite, CRA, generic)
+const defaultDevOrigins = [
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  "http://localhost:5500",
+  "http://127.0.0.1:5500",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "http://localhost:8080",
+  "http://127.0.0.1:8080",
+  "https://talentconnect-fd.onrender.com", 
+  "https://talentconnects.onrender.com"
+];
+
+const allowedOriginsSet = new Set([...rawEnvOrigins, ...defaultDevOrigins].map((u) => u.replace(/\/$/, "")));
+
+console.log("CORS allowed origins:", Array.from(allowedOriginsSet));
+
+// Handle preflight requests
+app.options('*', cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOriginsSet.has(origin.replace(/\/$/, ""))) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
+}));
+
+// Main CORS middleware
 app.use(cors({
   origin: (origin, callback) => {
+    // Allow non-browser clients or same-origin/no-origin requests
     if (!origin) return callback(null, true);
-    if (allowedOriginsSet.has(origin.replace(/\/$/, ""))) return callback(null, true);
+    const normalized = origin.replace(/\/$/, "");
+    if (allowedOriginsSet.has(normalized)) {
+      return callback(null, true);
+    }
+    console.warn(`CORS blocked: ${origin} not in allowed origins`);
     return callback(new Error("Not allowed by CORS"));
   },
-  methods: ["GET","POST","PUT","DELETE"],
-  credentials: true
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
 }));
 
 // ----------------- Middleware -----------------
@@ -112,6 +154,7 @@ app.get("/api/download-cv/:userId", async (req, res) => {
     res.status(500).send("Error downloading CV");
   }
 });
+// CORS is already configured at the top of the file
 
 // ----------------- Other Routes -----------------
 import coursesRouter from "./routes/courses.js";
@@ -136,6 +179,19 @@ app.use("/api/consultations", consultationsRouter);
 
 // ----------------- Test / Health -----------------
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
+
+// ----------------- Test Endpoint for CORS -----------------
+app.get("/api/test", (req, res) => {
+  console.log("Test endpoint hit");
+  res.json({
+    success: true,
+    message: "Test endpoint is working",
+    timestamp: new Date().toISOString(),
+    headers: req.headers,
+    method: req.method,
+    url: req.url
+  });
+});
 
 // ----------------- Frontend Serving -----------------
 const frontendPath = path.resolve("..", "frontend");
