@@ -2031,50 +2031,60 @@ async function loadConsultations() {
         }
 
         async function updateConsultationStatus(consultationId, newStatus) {
-            try {
-                // Show loading state
-                const selectElement = document.querySelector(`select[data-consultation-id="${consultationId}"]`);
-                const originalValue = selectElement ? selectElement.value : null;
-                if (selectElement) {
-                    selectElement.disabled = true;
-                    selectElement.innerHTML = '<option>Updating...</option>';
-                }
-
-                const response = await fetch(`${API_BASE}/api/consultations/${consultationId}/status`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify({ status: newStatus })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showNotification(`Consultation status updated to ${newStatus}`, 'success');
-                    loadConsultations(); // Reload to reflect changes
-                } else {
-                    // Revert UI on error
-                    if (selectElement && originalValue) {
-                        selectElement.innerHTML = `
-                            <option value="pending" ${originalValue === 'pending' ? 'selected' : ''}>Pending</option>
-                            <option value="confirmed" ${originalValue === 'confirmed' ? 'selected' : ''}>Confirmed</option>
-                            <option value="completed" ${originalValue === 'completed' ? 'selected' : ''}>Completed</option>
-                            <option value="cancelled" ${originalValue === 'cancelled' ? 'selected' : ''}>Cancelled</option>
-                        `;
-                        selectElement.value = originalValue;
-                        selectElement.disabled = false;
-                    }
-                    throw new Error(data.error || 'Failed to update status');
-                }
-            } catch (error) {
-                console.error('Error updating consultation status:', error);
-                showNotification('Failed to update consultation status', 'error');
-                loadConsultations(); // Reload to reset the dropdown
-            }
+    try {
+        // Show loading state
+        const selectElement = document.querySelector(`select[data-consultation-id="${consultationId}"]`);
+        const originalValue = selectElement ? selectElement.value : null;
+        if (selectElement) {
+            selectElement.disabled = true;
+            selectElement.innerHTML = '<option>Updating...</option>';
         }
+
+        const response = await fetch(`${API_BASE}/api/consultations/${consultationId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        // First check if the response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error('Expected JSON, got:', text);
+            throw new Error('Server returned non-JSON response');
+        }
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to update status');
+        }
+
+        showNotification(`Consultation status updated to ${newStatus}`, 'success');
+        loadConsultations(); // Reload to reflect changes
+
+    } catch (error) {
+        console.error('Error updating consultation status:', error);
+        showNotification(error.message || 'Failed to update consultation status', 'error');
+        
+        // Revert UI on error
+        const selectElement = document.querySelector(`select[data-consultation-id="${consultationId}"]`);
+        if (selectElement && originalValue) {
+            selectElement.innerHTML = `
+                <option value="pending" ${originalValue === 'pending' ? 'selected' : ''}>Pending</option>
+                <option value="confirmed" ${originalValue === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+                <option value="completed" ${originalValue === 'completed' ? 'selected' : ''}>Completed</option>
+                <option value="cancelled" ${originalValue === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+            `;
+            selectElement.value = originalValue;
+            selectElement.disabled = false;
+        }
+    }
+}
 
         // --- UPDATE LAST UPDATED TIME ---
         function updateLastUpdated() {

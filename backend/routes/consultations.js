@@ -163,5 +163,54 @@ router.post('/', async (req, res) => {
         });
     }
 });
+// PUT /api/consultations/:id/status - Update consultation status
+router.put('/:id/status', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        
+        // Validate status
+        if (!['pending', 'confirmed', 'completed', 'cancelled'].includes(status)) {
+            return res.status(400).json({ 
+                error: 'Invalid status. Must be one of: pending, confirmed, completed, cancelled' 
+            });
+        }
+
+        // Check if consultation exists
+        const [consultation] = await db.query(
+            'SELECT * FROM consultations WHERE id = ?', 
+            [id]
+        );
+
+        if (consultation.length === 0) {
+            return res.status(404).json({ error: 'Consultation not found' });
+        }
+
+        // Update status
+        await db.query(
+            'UPDATE consultations SET status = ?, updated_at = NOW() WHERE id = ?',
+            [status, id]
+        );
+
+        res.json({ 
+            success: true,
+            message: `Consultation status updated to ${status}`,
+            consultation_id: id,
+            status
+        });
+
+    } catch (error) {
+        console.error('Error updating consultation status:', {
+            message: error.message,
+            stack: error.stack
+        });
+        
+        res.status(500).json({ 
+            success: false,
+            error: 'Failed to update consultation status',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+});
 
 export default router;
