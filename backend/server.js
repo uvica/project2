@@ -1,3 +1,4 @@
+// server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -6,19 +7,37 @@ import path from "path";
 import mysql from "mysql2/promise";
 import fetch from "node-fetch";
 
+// In server.js, update the import to:
+import { sendConsultationConfirmationEmail } from "./utils/emailService.js";
+import coursesRouter from "./routes/courses.js";
+import faqsRouter from "./routes/faqs.js";
+import partnersRouter from "./routes/partners.js";
+import successStoriesRouter from "./routes/success_stories.js";
+import siteStatsRouter from "./routes/site_stats.js";
+import registrationsRouter from "./routes/registrations.js";
+import adminsRouter from "./routes/admins.js";
+import usersRouter from "./routes/users.js";
+import consultationsRouter from "./routes/consultations.js";
+
+
+
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+console.log('🔍 Debug: Server starting...');
+console.log('🔧 Environment:', process.env.NODE_ENV || 'development');
+console.log('📁 Current directory:', process.cwd());
+console.log('🔑 SENDGRID_API_KEY:', process.env.SENDGRID_API_KEY ? '***' + process.env.SENDGRID_API_KEY.slice(-4) : 'Not set');
+console.log('📧 EMAIL_FROM:', process.env.EMAIL_FROM || 'Not set');
+
 // ----------------- CORS Setup -----------------
-// Support multiple env-configured origins via FRONTEND_URL or comma-separated FRONTEND_URLS
 const rawEnvOrigins = [process.env.FRONTEND_URL, process.env.FRONTEND_URLS]
   .filter(Boolean)
   .flatMap((s) => s.split(","))
   .map((s) => s.trim())
   .filter(Boolean);
 
-// Common local dev origins (VSCode Live Server, Vite, CRA, generic)
 const defaultDevOrigins = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
@@ -28,43 +47,47 @@ const defaultDevOrigins = [
   "http://127.0.0.1:5173",
   "http://localhost:8080",
   "http://127.0.0.1:8080",
-  "https://talentconnect-fd.onrender.com", 
+  "https://talentconnect-fd.onrender.com",
   "https://talentconnects.onrender.com"
 ];
 
-const allowedOriginsSet = new Set([...rawEnvOrigins, ...defaultDevOrigins].map((u) => u.replace(/\/$/, "")));
+// Add this after your CORS setup but before other routes
+app.get("/api/test-route", (req, res) => {
+  console.log("Test route hit!");
+  res.json({ 
+    message: "Test route is working!",
+    env: {
+      NODE_ENV: process.env.NODE_ENV,
+      EMAIL_FROM: process.env.EMAIL_FROM ? "Set" : "Not set",
+      SENDGRID_API_KEY: process.env.SENDGRID_API_KEY ? "Set" : "Not set"
+    }
+  });
+});
 
+const allowedOriginsSet = new Set([...rawEnvOrigins, ...defaultDevOrigins].map((u) => u.replace(/\/$/, "")));
 console.log("CORS allowed origins:", Array.from(allowedOriginsSet));
 
-// Handle preflight requests
 app.options('*', cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOriginsSet.has(origin.replace(/\/$/, ""))) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    if (!origin || allowedOriginsSet.has(origin.replace(/\/$/, ""))) callback(null, true);
+    else callback(new Error('Not allowed by CORS'));
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
   credentials: true,
   optionsSuccessStatus: 200
 }));
 
-// Main CORS middleware
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow non-browser clients or same-origin/no-origin requests
     if (!origin) return callback(null, true);
     const normalized = origin.replace(/\/$/, "");
-    if (allowedOriginsSet.has(normalized)) {
-      return callback(null, true);
-    }
+    if (allowedOriginsSet.has(normalized)) return callback(null, true);
     console.warn(`CORS blocked: ${origin} not in allowed origins`);
     return callback(new Error("Not allowed by CORS"));
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
   credentials: true,
   optionsSuccessStatus: 200
 }));
@@ -99,19 +122,59 @@ db.getConnection()
   .then(conn => { console.log("✅ DB Connected"); conn.release(); })
   .catch(err => { console.error("❌ DB Connection Error:", err.message); });
 
+  // test
+
+  app.get("/api/test-send-all-emails", async (req, res) => {
+    console.log('🔍 Test send-all-emails route called');
+  
+    const testUser = {
+      full_name: "Test User",
+      email: "your-email@example.com", // Replace with actual test email
+      phone: "1234567890",
+      meeting_date: new Date().toISOString().split('T')[0], // Format: YYYY-MM-DD
+      meeting_time: "15:00", // 24-hour format
+      consultation_id: 999 // dummy ID for testing
+    };
+  
+    try {
+      console.log('📨 Sending test emails...');
+      
+      // Send user confirmation email
+      console.log('✉️ Sending user confirmation email...');
+      const userEmailResult = await sendConsultationConfirmationEmail(testUser);
+      console.log('✅ User confirmation email result:', userEmailResult);
+  
+      // Send admin notification
+      console.log('📧 Sending admin notification...');
+      const adminEmailResult = await sendAdminNotificationEmail(testUser);
+      console.log('✅ Admin notification result:', adminEmailResult);
+  
+      res.json({
+        success: true,
+        message: 'Test emails sent successfully',
+        userEmail: userEmailResult,
+        adminEmail: adminEmailResult
+      });
+  
+    } catch (error) {
+      console.error('❌ Error sending test emails:', {
+        message: error.message,
+        stack: error.stack
+      });
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+    }
+  });
+
 // ----------------- Admin Users Route -----------------
 app.get("/api/admin/users", async (req, res) => {
   try {
     const [rows] = await db.execute(`
-      SELECT 
-        u.id,
-        u.full_name,
-        u.email,
-        u.phone,
-        u.role,
-        r.cv_url,
-        r.cv_name,
-        r.created_at AS registration_date
+      SELECT u.id, u.full_name, u.email, u.phone, u.role,
+             r.cv_url, r.cv_name, r.created_at AS registration_date
       FROM users u
       LEFT JOIN registrations r ON u.email = r.email
     `);
@@ -125,7 +188,6 @@ app.get("/api/admin/users", async (req, res) => {
 // ----------------- Download CV Route -----------------
 app.get("/api/download-cv/:userId", async (req, res) => {
   const userId = req.params.userId;
-
   try {
     const [rows] = await db.execute(`
       SELECT r.cv_url, r.cv_name
@@ -134,9 +196,7 @@ app.get("/api/download-cv/:userId", async (req, res) => {
       WHERE u.id = ?
     `, [userId]);
 
-    if (!rows.length || !rows[0].cv_url) {
-      return res.status(404).send("CV not found");
-    }
+    if (!rows.length || !rows[0].cv_url) return res.status(404).send("CV not found");
 
     const { cv_url, cv_name } = rows[0];
     const response = await fetch(cv_url);
@@ -154,19 +214,8 @@ app.get("/api/download-cv/:userId", async (req, res) => {
     res.status(500).send("Error downloading CV");
   }
 });
-// CORS is already configured at the top of the file
 
 // ----------------- Other Routes -----------------
-import coursesRouter from "./routes/courses.js";
-import faqsRouter from "./routes/faqs.js";
-import partnersRouter from "./routes/partners.js";
-import successStoriesRouter from "./routes/success_stories.js";
-import siteStatsRouter from "./routes/site_stats.js";
-import registrationsRouter from "./routes/registrations.js";
-import adminsRouter from "./routes/admins.js";
-import usersRouter from "./routes/users.js";
-import consultationsRouter from "./routes/consultations.js";
-
 app.use("/api/courses", coursesRouter);
 app.use("/api/faqs", faqsRouter);
 app.use("/api/partners", partnersRouter);
@@ -177,21 +226,8 @@ app.use("/api/admins", adminsRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/consultations", consultationsRouter);
 
-// ----------------- Test / Health -----------------
+// ----------------- Health Check -----------------
 app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
-
-// ----------------- Test Endpoint for CORS -----------------
-app.get("/api/test", (req, res) => {
-  console.log("Test endpoint hit");
-  res.json({
-    success: true,
-    message: "Test endpoint is working",
-    timestamp: new Date().toISOString(),
-    headers: req.headers,
-    method: req.method,
-    url: req.url
-  });
-});
 
 // ----------------- Frontend Serving -----------------
 const frontendPath = path.resolve("..", "frontend");

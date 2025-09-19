@@ -1,164 +1,181 @@
-// utils/emailService.js - Email service for sending notifications
-import nodemailer from 'nodemailer';
+// utils/emailService.js
+import sgMail from '@sendgrid/mail';
 import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Create transporter with Gmail SMTP (you can change this to other providers)
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER, // Your email address
-      pass: process.env.EMAIL_PASS  // Your email app password
-    }
-  });
-};
+// Initialize SendGrid with API key
+if (!process.env.SENDGRID_API_KEY) {
+  console.error('❌ SENDGRID_API_KEY is not set in environment variables');
+} else {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+  console.log('✅ SendGrid initialized');
+}
 
-// Send consultation confirmation email
+/**
+ * Send a consultation confirmation email to the user
+ * @param {Object} userDetails - User information
+ * @param {string} userDetails.email - Recipient's email (required)
+ * @param {string} userDetails.full_name - Recipient's name
+ * @param {string} userDetails.meeting_date - Meeting date
+ * @param {string} userDetails.meeting_time - Meeting time
+ * @param {string} userDetails.phone - User's phone number
+ * @param {number} userDetails.consultation_id - Consultation ID
+ * @returns {Promise<Object>} Result of the email sending operation
+ */
 export const sendConsultationConfirmationEmail = async (userDetails) => {
+  const logPrefix = '✉️ [User Confirmation]';
+  console.log(`${logPrefix} Starting email to: ${userDetails?.email || 'No email provided'}`);
+
+  // Input validation
+  if (!userDetails?.email) {
+    const error = new Error('No email provided in userDetails');
+    console.error(`${logPrefix} Validation failed:`, error.message);
+    throw error;
+  }
+
   try {
-    const transporter = createTransporter();
-    
-    const { full_name, email, meeting_date, meeting_time, consultation_id } = userDetails;
-    
-    // Format the date for better readability
-    const formattedDate = new Date(meeting_date).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-    
-    // Format time for better readability
-    const formattedTime = meeting_time;
-    
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Confirmation – CareerCraft Expert Session',
+    const formattedDate = userDetails.meeting_date
+      ? new Date(userDetails.meeting_date).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      : 'Date not specified';
+
+    const msg = {
+      to: userDetails.email,
+      from: {
+        email: process.env.EMAIL_FROM,
+        name: 'TalentConnect'
+      },
+      subject: 'Consultation Confirmation – CareerCraft Expert Session',
       html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .content { background-color: #f9f9f9; padding: 30px; border-radius: 10px; }
-            .meeting-details { background-color: white; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #4CAF50; }
-            .join-link { background-color: #4CAF50; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 15px 0; }
-            .footer { text-align: center; margin-top: 30px; font-size: 14px; color: #666; font-style: italic; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="content">
-              <p><strong>Dear ${full_name},</strong></p>
-              
-              <p>Thank you for registering for a <strong>CareerCraft – Talk to Expert</strong> session with <strong>TalentConnect</strong>.</p>
-              
-              <p>We are pleased to confirm your appointment.</p>
-              
-              <div class="meeting-details">
-                <p><strong>📅 Date:</strong> ${formattedDate}</p>
-                <p><strong>⏰ Time:</strong> ${formattedTime}</p>
-                <p><strong>📍 Mode:</strong> Online (Google Meet)</p>
-                <p><strong>🔗 Join Link:</strong> <a href="https://meet.google.com/yrb-ugcy-dvo" class="join-link">https://meet.google.com/yrb-ugcy-dvo</a></p>
-              </div>
-              
-              <p>During this session, our expert will guide you in choosing the best course aligned with your strengths, interests, and career goals.</p>
-              
-              <p>We look forward to connecting with you and helping you take the next step in your career journey.</p>
-              
-              <p><strong>Best regards,</strong></p>
-              <p><strong>Team TalentConnect CareerCraft</strong></p>
-            </div>
-            <div class="footer">
-              <p><em>From Campus to Cubicle</em></p>
-            </div>
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h2>Your Consultation is Confirmed!</h2>
+          <p>Hello <strong>${userDetails.full_name || 'there'}</strong>,</p>
+          
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>📅 Date:</strong> ${formattedDate}</p>
+            <p><strong>⏰ Time:</strong> ${userDetails.meeting_time || 'Not specified'}</p>
+            <p><strong>📍 Mode:</strong> Online (Google Meet)</p>
+            <p><strong>🔗 Join Link:</strong> <a href="https://meet.google.com/yrb-ugcy-dvo" target="_blank">Join Meeting</a></p>
           </div>
-        </body>
-        </html>
-      `
+          
+          <p>We're excited to guide you in choosing the best course aligned with your career goals.</p>
+          
+          <p>Best regards,<br><strong>The TalentConnect Team</strong></p>
+        </div>
+      `,
+      trackingSettings: {
+        clickTracking: { enable: true, enableText: true },
+        openTracking: { enable: true }
+      }
     };
-    
-    const info = await transporter.sendMail(mailOptions);
-    console.log('📧 ✅ CONSULTATION CONFIRMATION EMAIL SENT SUCCESSFULLY!');
-    console.log('📤 To:', email);
-    console.log('👤 Recipient:', full_name);
-    console.log('📅 Meeting Date:', meeting_date);
-    console.log('⏰ Meeting Time:', meeting_time);
-    console.log('🆔 Message ID:', info.messageId);
-    console.log('📋 Subject: Confirmation – CareerCraft Expert Session');
-    console.log('─'.repeat(60));
-    return { success: true, messageId: info.messageId };
-    
-  } catch (error) {
-    console.log('📧 ❌ CONSULTATION CONFIRMATION EMAIL FAILED!');
-    console.log('📤 Failed To:', email);
-    console.log('👤 Recipient:', full_name);
-    console.log('❌ Error:', error.message);
-    console.log('─'.repeat(60));
-    return { success: false, error: error.message };
-  }
-};
 
-// Send admin notification email (optional - to notify admin of new bookings)
-export const sendAdminNotificationEmail = async (userDetails) => {
-  try {
-    const transporter = createTransporter();
+    console.log(`${logPrefix} Sending to: ${msg.to}, From: ${msg.from.email}`);
     
-    const { full_name, email, phone, meeting_date, meeting_time, consultation_id } = userDetails;
+    const response = await sgMail.send(msg);
+    console.log(`${logPrefix} ✅ Success! Message ID:`, response[0]?.headers?.['x-message-id']);
     
-    const formattedDate = new Date(meeting_date).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return {
+      success: true,
+      messageId: response[0]?.headers?.['x-message-id'],
+      statusCode: response[0]?.statusCode
+    };
+
+  } catch (error) {
+    console.error(`${logPrefix} ❌ Failed to send email:`, {
+      error: error.message,
+      code: error.code,
+      response: error.response?.body || 'No response body',
+      stack: error.stack
     });
-    
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER, // Admin email
-      subject: `New Consultation Booking - ${full_name}`,
-      html: `
-        <h2>New Consultation Booking</h2>
-        <p><strong>Booking ID:</strong> #${consultation_id}</p>
-        <p><strong>Client Name:</strong> ${full_name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Phone:</strong> ${phone}</p>
-        <p><strong>Date:</strong> ${formattedDate}</p>
-        <p><strong>Time:</strong> ${meeting_time}</p>
-        <p><strong>Status:</strong> Pending Confirmation</p>
-        
-        <p>Please review and confirm this booking in the admin dashboard.</p>
-      `
-    };
-    
-    const info = await transporter.sendMail(mailOptions);
-    console.log('📧 ✅ ADMIN NOTIFICATION EMAIL SENT SUCCESSFULLY!');
-    console.log('📤 To Admin:', process.env.ADMIN_EMAIL || process.env.EMAIL_USER);
-    console.log('👤 New Booking From:', full_name);
-    console.log('📧 Client Email:', email);
-    console.log('📞 Client Phone:', phone);
-    console.log('📅 Meeting Date:', meeting_date);
-    console.log('⏰ Meeting Time:', meeting_time);
-    console.log('🆔 Booking ID:', consultation_id);
-    console.log('🆔 Message ID:', info.messageId);
-    console.log('📋 Subject: New Consultation Booking -', full_name);
-    console.log('─'.repeat(60));
-    return { success: true, messageId: info.messageId };
-    
-  } catch (error) {
-    console.log('📧 ❌ ADMIN NOTIFICATION EMAIL FAILED!');
-    console.log('📤 Failed To Admin:', process.env.ADMIN_EMAIL || process.env.EMAIL_USER);
-    console.log('👤 Booking From:', full_name);
-    console.log('❌ Error:', error.message);
-    console.log('─'.repeat(60));
-    return { success: false, error: error.message };
+    throw error;
   }
 };
 
+/**
+ * Send admin notification about new consultation
+ * @param {Object} userDetails - User and consultation details
+ * @param {string} userDetails.full_name - User's full name
+ * @param {string} userDetails.email - User's email
+ * @param {string} userDetails.phone - User's phone number
+ * @param {string} userDetails.meeting_date - Meeting date
+ * @param {string} userDetails.meeting_time - Meeting time
+ * @param {number} userDetails.consultation_id - Consultation ID
+ * @returns {Promise<Object>} Result of the email sending operation
+ */
+export const sendAdminNotificationEmail = async (userDetails) => {
+  const logPrefix = '📧 [Admin Notification]';
+  
+  if (!process.env.ADMIN_EMAIL) {
+    const message = 'ADMIN_EMAIL not configured';
+    console.log(`${logPrefix} ${message}`);
+    return { success: false, message };
+  }
+
+  console.log(`${logPrefix} Preparing notification for admin: ${process.env.ADMIN_EMAIL}`);
+
+  try {
+    const formattedDate = userDetails.meeting_date
+      ? new Date(userDetails.meeting_date).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        })
+      : 'Date not specified';
+
+    const msg = {
+      to: process.env.ADMIN_EMAIL,
+      from: {
+        email: process.env.EMAIL_FROM,
+        name: 'TalentConnect Notifications'
+      },
+      subject: `New Consultation: ${userDetails.full_name || 'New User'}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+          <h3>New Consultation Scheduled</h3>
+          <p><strong>Name:</strong> ${userDetails.full_name || 'Not provided'}</p>
+          <p><strong>Email:</strong> ${userDetails.email || 'Not provided'}</p>
+          <p><strong>Phone:</strong> ${userDetails.phone || 'Not provided'}</p>
+          <p><strong>Date:</strong> ${formattedDate}</p>
+          <p><strong>Time:</strong> ${userDetails.meeting_time || 'Not specified'}</p>
+          <p><strong>Consultation ID:</strong> ${userDetails.consultation_id || 'N/A'}</p>
+          <p><strong>Status:</strong> <em>Pending Confirmation</em></p>
+        </div>
+      `
+    };
+
+    console.log(`${logPrefix} Sending to admin: ${msg.to}`);
+    const response = await sgMail.send(msg);
+    console.log(`${logPrefix} ✅ Notification sent successfully!`);
+    
+    return {
+      success: true,
+      messageId: response[0]?.headers?.['x-message-id'],
+      statusCode: response[0]?.statusCode
+    };
+
+  } catch (error) {
+    console.error(`${logPrefix} ❌ Failed to send admin notification:`, {
+      error: error.message,
+      code: error.code,
+      response: error.response?.body || 'No response body',
+      stack: error.stack
+    });
+    // Don't throw to avoid breaking the main flow
+    return {
+      success: false,
+      error: error.message,
+      code: error.code
+    };
+  }
+};
+
+// Remove the default export and only use named exports
 export default {
   sendConsultationConfirmationEmail,
   sendAdminNotificationEmail
