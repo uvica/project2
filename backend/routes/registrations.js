@@ -4,6 +4,7 @@ import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import dotenv from 'dotenv';
 import fetch from 'node-fetch';
+import { sendWelcomeEmail } from '../utils/emailService.js';
 
 dotenv.config();
 
@@ -77,12 +78,30 @@ router.post('/', upload.single('cv'), async (req, res) => {
     const cv_mimetype = req.file.mimetype;
 
     // Insert user into DB
-    await db.query(
+    const [dbResult] = await db.query(
       'INSERT INTO users (full_name, email, phone, role, cv_url, cv_filename, cv_mimetype) VALUES (?, ?, ?, ?, ?, ?, ?)',
       [fullName, email, phone, role, cv_url, cv_filename, cv_mimetype]
     );
 
-    res.status(201).json({ message: 'Registration successful' });
+    try {
+      // Send welcome email
+      await sendWelcomeEmail({
+        email,
+        full_name: fullName,
+        phone: phone || 'Not provided',
+        role: role || 'user'
+      });
+      console.log(`✅ Welcome email sent to ${email}`);
+    } catch (emailError) {
+      // Log error but don't fail the registration if email fails
+      console.error('❌ Failed to send welcome email:', emailError);
+    }
+
+    res.status(201).json({ 
+success: true,
+      message: 'Registration successful',
+      userId: dbResult.insertId 
+    });
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({ error: 'Failed to register user', details: err.message });

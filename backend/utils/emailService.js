@@ -176,7 +176,133 @@ export const sendAdminNotificationEmail = async (userDetails) => {
 };
 
 // Remove the default export and only use named exports
+/**
+ * Send a welcome email to newly registered users
+ * @param {Object} userDetails - User information
+ * @param {string} userDetails.email - Recipient's email (required)
+ * @param {string} userDetails.full_name - Recipient's name
+ * @returns {Promise<Object>} Result of the email sending operation
+ */
+export const sendWelcomeEmail = async (userDetails) => {
+  const logPrefix = '✉️ [Welcome Email]';
+  console.log(`${logPrefix} Sending welcome email to: ${userDetails?.email || 'No email provided'}`);
+
+  // Input validation
+  if (!userDetails?.email) {
+    const error = new Error('No email provided in userDetails');
+    console.error(`${logPrefix} Validation failed:`, error.message);
+    throw error;
+  }
+
+  try {
+    const msg = {
+      to: userDetails.email,
+      from: {
+        email: process.env.EMAIL_FROM,
+        name: 'TalentConnect CareerCraft'
+      },
+      subject: 'Welcome to TalentConnect CareerCraft – Your Journey Begins 🚀',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
+          <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #2563eb; margin-bottom: 10px;">Welcome to TalentConnect CareerCraft!</h1>
+            <p style="font-size: 20px; color: #4b5563;">Your Journey Begins 🚀</p>
+          </div>
+          
+          <p>Dear ${userDetails.full_name || 'Valued User'},</p>
+          
+          <p>We are excited to welcome you to the <strong>TalentConnect CareerCraft Program!</strong> 🎉</p>
+          
+          <p>You've successfully registered for your chosen course, and your journey with us will follow this structured path:</p>
+          
+          <h3 style="color: #2563eb; margin-top: 25px;">📌 Program Flow:</h3>
+          
+          <div style="background: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <p style="font-weight: bold; color: #1e40af;">Month 1: Learn</p>
+            <p>Gain in-depth knowledge and skills from experts.</p>
+            
+            <p style="font-weight: bold; color: #1e40af; margin-top: 15px;">Month 2: Build</p>
+            <p>Work on real-world projects to sharpen your practical expertise.</p>
+            
+            <p style="font-weight: bold; color: #1e40af; margin-top: 15px;">Month 3: Release</p>
+            <p>Showcase your final project and get evaluated.</p>
+          </div>
+          
+          <p>After completing this 3-month course, you'll step into a 3-month paid internship, where you'll apply your skills in a professional setting. Based on your performance, your internship may convert into a full-time role.</p>
+          
+          <p>We'll share your batch start date, orientation details, and joining instructions with you shortly. Please stay tuned.</p>
+          
+          <p>At TalentConnect, we believe in not just teaching but unlocking your potential and building a bridge from learning to earning.</p>
+          
+          <p>For any queries, feel free to reach us at <a href="mailto:support@talentconnect.com" style="color: #2563eb; text-decoration: none;">support@talentconnect.com</a> or call us at +1 (555) 123-4567.</p>
+          
+          <p>We look forward to seeing you grow with us!</p>
+          
+          <p>Best Regards,<br>
+          <strong>Team TalentConnect</strong><br>
+          <em style="color: #4b5563;">Your Talent, Unlocked. Your Future, Unstoppable.</em></p>
+          
+          <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280;">
+            <p>This is an automated message. Please do not reply to this email.</p>
+            <p>© ${new Date().getFullYear()} TalentConnect. All rights reserved.</p>
+          </div>
+        </div>
+      `,
+      text: `Welcome to TalentConnect CareerCraft – Your Journey Begins 🚀
+
+Dear ${userDetails.full_name || 'Valued User'},
+
+We are excited to welcome you to the TalentConnect CareerCraft Program! 🎉
+
+You've successfully registered for your chosen course, and your journey with us will follow this structured path:
+
+📌 Program Flow:
+
+Month 1: Learn
+Gain in-depth knowledge and skills from experts.
+
+Month 2: Build
+Work on real-world projects to sharpen your practical expertise.
+
+Month 3: Release
+Showcase your final project and get evaluated.
+
+After completing this 3-month course, you'll step into a 3-month paid internship, where you'll apply your skills in a professional setting. Based on your performance, your internship may convert into a full-time role.
+
+We'll share your batch start date, orientation details, and joining instructions with you shortly. Please stay tuned.
+
+At TalentConnect, we believe in not just teaching but unlocking your potential and building a bridge from learning to earning.
+
+For any queries, feel free to reach us at support@talentconnect.com or call us at +1 (555) 123-4567.
+
+We look forward to seeing you grow with us!
+
+Best Regards,
+Team TalentConnect
+Your Talent, Unlocked. Your Future, Unstoppable.
+
+---
+This is an automated message. Please do not reply to this email.
+© ${new Date().getFullYear()} TalentConnect. All rights reserved.`
+    };
+
+    console.log(`${logPrefix} Sending email to: ${msg.to}`);
+    await sgMail.send(msg);
+    console.log(`${logPrefix} Email sent successfully to: ${msg.to}`);
+    
+    return { success: true, message: 'Welcome email sent successfully' };
+  } catch (error) {
+    console.error(`${logPrefix} Error sending welcome email:`, {
+      error: error.message,
+      stack: error.stack,
+      response: error.response?.body || 'No response body'
+    });
+    throw new Error(`Failed to send welcome email: ${error.message}`);
+  }
+};
+
 export default {
   sendConsultationConfirmationEmail,
-  sendAdminNotificationEmail
+  sendAdminNotificationEmail,
+  sendWelcomeEmail
 };
