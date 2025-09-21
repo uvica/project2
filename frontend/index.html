@@ -6,6 +6,7 @@
     <title>TalentConnect CareerCraft</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
@@ -25,7 +26,81 @@
         }
     </script>
     <style>
-        /* All your CSS styles remain unchanged */
+        /* Partners Animation */
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(calc(-150px * 8)) } /* Adjust based on number of items */
+        }
+        
+        .partners-container {
+            width: 100%;
+            overflow: hidden;
+            position: relative;
+            padding: 20px 0;
+        }
+        
+        .partners-track {
+            display: flex;
+            gap: 40px;
+            width: max-content;
+            will-change: transform;
+            transition: transform 0.1s linear;
+        }
+        
+        .partner-logo {
+            height: 50px;
+            width: auto;
+            max-width: 150px;
+            object-fit: contain;
+            filter: grayscale(100%) brightness(0.8);
+            transition: all 0.3s ease;
+        }
+        
+        .partner-box:hover .partner-logo {
+            filter: grayscale(0%) brightness(1.1);
+            transform: scale(1.1);
+        }
+        
+        .partners-track.paused {
+            animation-play-state: paused;
+        }
+        
+        .partners-track:hover {
+            animation-play-state: paused;
+        }
+        
+        .partner-box {
+            flex: 0 0 auto;
+            width: 150px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 10px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .partner-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .partner-logo {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            filter: grayscale(100%) brightness(0.8);
+            transition: filter 0.3s ease;
+        }
+        
+        .partner-box:hover .partner-logo {
+            filter: grayscale(0%) brightness(1);
+        }
+        
+        /* All your other CSS styles remain unchanged */
         .form-input { 
             background-color: #374151; 
             border: 1px solid #4b5563; 
@@ -975,6 +1050,22 @@
             </div>
         </section>
 
+        <!-- Hiring Partners -->
+        <section class="py-16 px-4 bg-gray-800/30">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold mb-4">Our Hiring Partners</h2>
+                    <p class="text-gray-400 max-w-3xl mx-auto">Join the ranks of professionals hired by top companies after completing our program</p>
+                </div>
+                
+                <div id="partners-container" class="partners-container">
+                    <div id="partners-track" class="partners-track">
+                        <!-- Partners will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Success Stories -->
         <section class="py-16 px-4">
             <div class="max-w-6xl mx-auto">
@@ -1276,9 +1367,12 @@
             </div>
         </div>
 
-        <script>
+        <!-- AOS Animation Library -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <script>
   // ----------------- API Configuration -----------------
-const API_BASE = "https://talentconnects.onrender.com"; // Production backend URL
+  const API_BASE = "https://talentconnects.onrender.com"; // Production backend URL
 
   // ----------------- FAQ Data -----------------
   const faqs = [
@@ -1725,6 +1819,10 @@ function handleRegistration(event) {
 
   // ----------------- Hiring Partners Carousel -----------------
   let partnerIndex = 0;
+  let animationFrame;
+  let lastTimestamp = 0;
+  const SCROLL_SPEED = 0.8; // Pixels per frame
+  let isPaused = false;
   async function fetchPartners() {
     try {
         const res = await fetch(`${API_BASE}/api/partners`);
@@ -1738,35 +1836,137 @@ function handleRegistration(event) {
   }
 
   async function populatePartners() {
+    const container = document.getElementById('partners-container');
     const track = document.getElementById('partners-track');
-    if (!track) return;
+    if (!track || !container) return;
 
+    // Clear existing content
     track.innerHTML = '';
 
-    const partners = await fetchPartners();
-    partners.forEach(p => {
+    // Fetch partners data
+    let partners = await fetchPartners();
+    
+    // If no partners or error, use placeholders
+    if (!partners || partners.length === 0) {
+      partners = [
+        { name: 'Google', logo_url: 'https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg' },
+        { name: 'Microsoft', logo_url: 'https://upload.wikimedia.org/wikipedia/commons/9/96/Microsoft_logo_%282012%29.svg' },
+        { name: 'Amazon', logo_url: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg' },
+        { name: 'Apple', logo_url: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg' },
+        { name: 'Facebook', logo_url: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg' },
+        { name: 'Netflix', logo_url: 'https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg' },
+        { name: 'Tesla', logo_url: 'https://upload.wikimedia.org/wikipedia/commons/e/e8/Tesla_logo.png' },
+        { name: 'Uber', logo_url: 'https://upload.wikimedia.org/wikipedia/commons/5/58/Uber_logo_2018.svg' }
+      ];
+    }
+    
+    // Duplicate partners for infinite scroll effect
+    const duplicatedPartners = [...partners, ...partners];
+    
+    // Create partner elements
+    duplicatedPartners.forEach((p, index) => {
       const box = document.createElement('div');
       box.className = 'partner-box';
+      box.setAttribute('data-aos', 'fade-up');
+      box.setAttribute('data-aos-delay', `${(index % 5) * 100}`);
+      
       const img = document.createElement('img');
       let src = p.logo_url || '';
       try {
         if (src && !/^https?:\/\//i.test(src)) {
-          // Ensure leading slash and build absolute URL using current origin
           if (!src.startsWith('/')) src = `/${src}`;
           src = `${window.location.origin}${src}`;
         }
       } catch {}
+      
       img.src = src || 'https://placehold.co/150x80?text=Logo';
       img.alt = p.name || 'Partner';
       img.className = 'partner-logo';
-      img.onerror = () => { console.warn('Partner logo failed to load:', img.alt, img.src); img.src = 'https://placehold.co/150x80?text=Logo'; };
+      img.loading = 'lazy'; // Lazy load images
+      
+      img.onerror = () => { 
+        console.warn('Partner logo failed to load:', img.alt, img.src); 
+        img.src = 'https://placehold.co/150x80?text=Logo'; 
+      };
+      
+      // Add hover effect
+      box.addEventListener('mouseenter', () => {
+        box.style.transform = 'translateY(-5px) scale(1.05)';
+      });
+      
+      box.addEventListener('mouseleave', () => {
+        box.style.transform = 'translateY(0) scale(1)';
+      });
+      
       box.appendChild(img);
       track.appendChild(box);
     });
-
-    // Add touch event listeners for partners carousel
-    addTouchListeners(track, 'partners');
-    updatePartnerCarousel();
+    
+    // Start the smooth scroll animation
+    function startAnimation() {
+      if (isPaused) return;
+      
+      const startTime = performance.now();
+      const duration = 30000; // 30 seconds for a full loop
+      const startPosition = 0;
+      const endPosition = track.scrollWidth / 2; // Since we duplicate the items
+      
+      function animate(currentTime) {
+        if (isPaused) return;
+        
+        const elapsed = (currentTime - startTime) % duration;
+        const progress = elapsed / duration;
+        
+        // Use easeInOutQuad for smoother acceleration/deceleration
+        const easeProgress = progress < 0.5 
+          ? 2 * progress * progress 
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+        
+        const currentPosition = startPosition + (endPosition * easeProgress);
+        track.style.transform = `translateX(-${currentPosition}px)`;
+        
+        if (!isPaused) {
+          animationFrame = requestAnimationFrame(animate);
+        }
+      }
+      
+      animationFrame = requestAnimationFrame(animate);
+    }
+    
+    // Pause/Resume on hover
+    container.addEventListener('mouseenter', () => {
+      isPaused = true;
+      track.style.transition = 'transform 0.5s ease-out';
+    });
+    
+    container.addEventListener('mouseleave', () => {
+      isPaused = false;
+      startAnimation();
+    });
+    
+    // Start the animation
+    startAnimation();
+    
+    // Handle window resize
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        track.style.transition = 'none';
+        track.style.transform = 'translateX(0)';
+        if (!isPaused) {
+          startAnimation();
+        }
+      }, 100);
+    });
+    
+    // Clean up
+    return () => {
+      isPaused = true;
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+      }
+    };
   }
 
   function updatePartnerCarousel() {
@@ -1978,7 +2178,21 @@ function handleRegistration(event) {
 
   // ----------------- Main Execution -----------------
   initializePage();
-  populatePartners(); // Populate partners on load
+  
+  // Initialize AOS
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof AOS !== 'undefined') {
+      AOS.init({
+        duration: 800,
+        once: true,
+        easing: 'ease-out-cubic'
+      });
+    }
+    
+    // Load partners after AOS is initialized
+    populatePartners();
+  });
+  
   populateSuccessStories(); // Populate success stories on load
   populateFAQs(); // Populate FAQs on load
   setupEventListeners();
